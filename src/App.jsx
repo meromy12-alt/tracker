@@ -147,32 +147,56 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         return { googleId: item.id, title: v.title || "Untitled", author: (v.authors || []).slice(0, 2).join(", ") || "Unknown", year: v.publishedDate ? parseInt(v.publishedDate.slice(0, 4), 10) : null, cover, isbn, pages, subjects, synopsis, publisher: v.publisher || null, inferredMoods: Array.from(inferredMoods), inferredKeywordMoods: Array.from(inferredFromKeywords), inferredPace };
     }
 
-async function discoverBooks(answers) {
-    const era = answers.era || "any";
-    let collected = [];
-    if (era === "modern" || era === "any") {
-        const mq = buildEraQuery(answers, "modern");
-        const r1 = await tryGoogleQuery(mq, "newest"); if (r1.ok) collected.push(...filterByEra(r1.books, "modern"));
-        const r2 = await tryGoogleQuery(mq, "relevance"); if (r2.ok) collected.push(...filterByEra(r2.books, "modern"));
+    function buildEraQuery(answers, era) {
+        const parts = [];
+        const moodMap = MOOD_TO_QUERY[era] || MOOD_TO_QUERY.modern;
+        if (answers.mood && moodMap[answers.mood]) parts.push(`(${moodMap[answers.mood]})`);
+        if (answers.energy === "carry") parts.push("(thriller OR adventure)");
+        else if (answers.energy === "comfort") parts.push("(cozy OR heartwarming)");
+        else if (answers.energy === "think") parts.push("(literary OR thoughtful)");
+        return parts.length ? parts.join(" ") : (era === "modern" ? "fiction 2020" : "classic fiction");
     }
-    if (era === "classic" || era === "any") {
-        const cq = buildEraQuery(answers, "classic");
-        const r3 = await tryGoogleQuery(cq, "relevance"); if (r3.ok) collected.push(...filterByEra(r3.books, "classic"));
+
+    async function tryGoogleQuery(q, orderBy = "relevance") {
+        try {
+            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=40&printType=books&orderBy=${orderBy}&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`);
+            if (!res.ok) return { ok: false, status: res.status, query: q };
+            const data = await res.json();
+            return { ok: true, query: q, books: (data.items || []).map(normaliseGoogleBook) };
+        } catch (err) { return { ok: false, status: 0, query: q, error: err.message }; }
     }
-    const seen = new Set();
-    collected = collected.filter(b => { if (seen.has(b.googleId)) return false; seen.add(b.googleId); return true; });
-    if (era === "any") {
-        const modern = collected.filter(b => b.year && b.year >= MODERN_CUTOFF);
-        const classics = collected.filter(b => !b.year || b.year < MODERN_CUTOFF);
-        collected = [...modern, ...classics.slice(0, Math.ceil(classics.length / 3))];
+
+    function filterByEra(books, era) {
+        if (era === "any") return books;
+        return books.filter(b => { if (!b.year) return true; if (era === "modern") return b.year >= MODERN_CUTOFF; return b.year < MODERN_CUTOFF; });
     }
-    if (collected.length === 0) {
-        const r = await tryGoogleQuery(answers.mood ? `${answers.mood} fiction` : "fiction", "relevance");
-        if (r.ok) collected = filterByEra(r.books, era);
+
+    async function discoverBooks(answers) {
+        const era = answers.era || "any";
+        let collected = [];
+        if (era === "modern" || era === "any") {
+            const mq = buildEraQuery(answers, "modern");
+            const r1 = await tryGoogleQuery(mq, "newest"); if (r1.ok) collected.push(...filterByEra(r1.books, "modern"));
+            const r2 = await tryGoogleQuery(mq, "relevance"); if (r2.ok) collected.push(...filterByEra(r2.books, "modern"));
+        }
+        if (era === "classic" || era === "any") {
+            const cq = buildEraQuery(answers, "classic");
+            const r3 = await tryGoogleQuery(cq, "relevance"); if (r3.ok) collected.push(...filterByEra(r3.books, "classic"));
+        }
+        const seen = new Set();
+        collected = collected.filter(b => { if (seen.has(b.googleId)) return false; seen.add(b.googleId); return true; });
+        if (era === "any") {
+            const modern = collected.filter(b => b.year && b.year >= MODERN_CUTOFF);
+            const classics = collected.filter(b => !b.year || b.year < MODERN_CUTOFF);
+            collected = [...modern, ...classics.slice(0, Math.ceil(classics.length / 3))];
+        }
+        if (collected.length === 0) {
+            const r = await tryGoogleQuery(answers.mood ? `${answers.mood} fiction` : "fiction", "relevance");
+            if (r.ok) collected = filterByEra(r.books, era);
+        }
+        if (collected.length === 0) throw new Error("No results found. Try different answers.");
+        return { books: collected };
     }
-    if (collected.length === 0) throw new Error("No results found. Try different answers.");
-    return { books: collected };
-}
 
     function scoreExternal(book, a) {
         let score = 0; const reasons = [];
