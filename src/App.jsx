@@ -94,8 +94,8 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
     const SESSION_SEEN_KEY = "marginalia.session_seen.v1";
     const GOAL_KEY = "marginalia.goal.v1";
 
-    const loadBooks = () => { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch (e) { return []; } };
-    const saveBooks = (books) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(books)); } catch (e) { /* ignore */ } };
+    const loadBooks = () => { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch (_e) { return []; } };
+    const saveBooks = (books) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(books)); } catch (_e) { /* ignore */ } };
 
     const exportBooks = (books) => {
         const data = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), books }, null, 2);
@@ -116,13 +116,13 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
                 const books = data.books || data;
                 if (!Array.isArray(books)) throw new Error("Invalid format");
                 if (window.confirm(`Import ${books.length} books? This will replace your current library.`)) setBooks(books);
-            } catch (e) { alert("Could not read that file. Make sure it's a Marginalia backup JSON."); }
+            } catch (_e) { alert("Could not read that file. Make sure it's a Marginalia backup JSON."); }
         };
         reader.readAsText(file);
     };
 
     (function migrate() {
-        try { const old = localStorage.getItem("trackmate.books.v1"); const current = localStorage.getItem(STORAGE_KEY); if (old && !current) localStorage.setItem(STORAGE_KEY, old); } catch (e) { /* ignore */ }
+        try { const old = localStorage.getItem("trackmate.books.v1"); const current = localStorage.getItem(STORAGE_KEY); if (old && !current) localStorage.setItem(STORAGE_KEY, old); } catch (_e) { /* ignore */ }
     })();
 
     function pickIsbn(ids = []) { const i13 = ids.find(i => i.type === "ISBN_13"); const i10 = ids.find(i => i.type === "ISBN_10"); return i13?.identifier || i10?.identifier || null; }
@@ -170,7 +170,7 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
                 }).filter(b => b.score >= 50).sort((a, b) => b.score - a.score).slice(0, 12);
                 if (scored.length >= 1) return scored;
             }
-        } catch (e) { /* fall through */ }
+        } catch (_e) { /* fall through */ }
         const q = trimmed;
         const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=40&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`);
         if (!res.ok) throw new Error(`Search failed (${res.status})`);
@@ -237,15 +237,15 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         const [findBook, setFindBook] = useState(null);
         const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
 
-        const [palette, setPalette] = useState(() => { try { return localStorage.getItem("marginalia.palette") || "parchment"; } catch (e) { return "parchment"; } });
+        const [palette, setPalette] = useState(() => { try { return localStorage.getItem("marginalia.palette") || "parchment"; } catch (_e) { return "parchment"; } });
         // eslint-disable-next-line
         T = PALETTES[palette] || PALETTES.parchment;
 
-        const [readingGoal, setReadingGoal] = useState(() => { try { return JSON.parse(localStorage.getItem(GOAL_KEY) || "null"); } catch (e) { return null; } });
+        const [readingGoal, setReadingGoal] = useState(() => { try { return JSON.parse(localStorage.getItem(GOAL_KEY) || "null"); } catch (_e) { return null; } });
 
         useEffect(() => { saveBooks(books); }, [books]);
-        useEffect(() => { try { localStorage.setItem("marginalia.palette", palette); } catch (e) { /* ignore */ } }, [palette]);
-        useEffect(() => { try { localStorage.setItem(GOAL_KEY, JSON.stringify(readingGoal)); } catch (e) { /* ignore */ } }, [readingGoal]);
+        useEffect(() => { try { localStorage.setItem("marginalia.palette", palette); } catch (_e) { /* ignore */ } }, [palette]);
+        useEffect(() => { try { localStorage.setItem(GOAL_KEY, JSON.stringify(readingGoal)); } catch (_e) { /* ignore */ } }, [readingGoal]);
         useEffect(() => {
             const handler = () => setIsMobile(window.innerWidth < 600);
             window.addEventListener("resize", handler);
@@ -566,19 +566,19 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         const [blindMode, setBlindMode] = useState(false);
         const [revealed, setRevealed] = useState(false);
         const [answers, setAnswers] = useState({ energy: null, length: null, mood: null, era: null, avoid: [] });
-        const [rejectedIds, setRejectedIds] = useState(() => { try { return JSON.parse(sessionStorage.getItem("marginalia.rejected") || "[]"); } catch (e) { return []; } });
-        const [seenIds, setSeenIds] = useState(() => { try { return JSON.parse(sessionStorage.getItem(SESSION_SEEN_KEY) || "[]"); } catch (e) { return []; } });
+        const [rejectedIds, setRejectedIds] = useState(() => { try { return JSON.parse(sessionStorage.getItem("marginalia.rejected") || "[]"); } catch (_e) { return []; } });
+        const [seenIds, setSeenIds] = useState(() => { try { return JSON.parse(sessionStorage.getItem(SESSION_SEEN_KEY) || "[]"); } catch (_e) { return []; } });
         const [match, setMatch] = useState(null);
         const [loading, setLoading] = useState(false);
         const [imgError, setImgError] = useState(false);
 
-        const remember = (id) => { if (!id) return; const next = [...seenIds, id].slice(-50); setSeenIds(next); try { sessionStorage.setItem(SESSION_SEEN_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ } };
+        const remember = (id) => { if (!id) return; const next = [...seenIds, id].slice(-50); setSeenIds(next); try { sessionStorage.setItem(SESSION_SEEN_KEY, JSON.stringify(next)); } catch (_e) { /* ignore */ } };
 
         const reject = (id) => {
             if (!id) return;
             const next = [...rejectedIds, id];
             setRejectedIds(next);
-            try { sessionStorage.setItem("marginalia.rejected", JSON.stringify(next)); } catch (e) { /* ignore */ }
+            try { sessionStorage.setItem("marginalia.rejected", JSON.stringify(next)); } catch (_e) { /* ignore */ }
             return next;
         };
 
@@ -859,9 +859,9 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
             let synopsis = b.synopsis || null;
             if (!synopsis && b.googleId && b.googleId.startsWith("/works/")) {
                 try {
-                    const res = await fetch(`/api/synopsis?key=${encodeURIComponent(b.googleId)}`);
+                    const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://openlibrary.org${b.googleId}.json`)}`);
                     if (res.ok) { const data = await res.json(); synopsis = data.description || null; }
-                } catch (e) { /* ignore */ }
+                } catch (_e) { /* ignore */ }
             }
             onAdd({ title: b.title, author: b.author, year: b.year, cover: b.cover, isbn: b.isbn, pages: b.pages, subjects: b.subjects || [], synopsis, publisher: b.publisher || null, googleId: b.googleId });
         };
@@ -1313,3 +1313,5 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
     const secondary = { display: "inline-flex", alignItems: "center", gap: 8, minHeight: 40, padding: "8px 18px", borderRadius: 10, border: `1px solid ${T.border}`, background: "transparent", color: T.ink, fontWeight: 500, fontSize: 14, cursor: "pointer" };
     const backBtn = { background: "none", border: "none", color: T.muted, padding: 0, marginBottom: 16, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" };
     const tagPill = (active, color = T.accent) => ({ minHeight: 34, padding: "5px 11px", borderRadius: 999, border: active ? `1.5px solid ${color}` : `1px solid ${T.border}`, background: active ? `${color}20` : "transparent", color: T.ink, fontSize: 13, fontWeight: 500, cursor: "pointer", textTransform: "capitalize" });
+
+
