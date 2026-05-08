@@ -246,8 +246,23 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
     // ─── App ─────────────────────────────────────────────────────────────────────
 
     export default function App() {
+        const [keyStatus, setKeyStatus] = useState("checking"); // checking | valid | invalid
         const [books, setBooks] = useState(loadBooks);
         const [view, setView] = useState("library");
+
+        useEffect(() => {
+            const params = new URLSearchParams(window.location.search);
+            const key = params.get("key");
+            if (key) {
+                try { localStorage.setItem("marginalia.key", key); } catch (_e) { /* ignore */ }
+            }
+            const storedKey = key || localStorage.getItem("marginalia.key");
+            if (!storedKey) { setKeyStatus("invalid"); return; }
+            fetch(`https://marginalia-dda02-default-rtdb.firebaseio.com/keys/${storedKey}.json`)
+                .then(r => r.json())
+                .then(val => { setKeyStatus(val === "active" ? "valid" : "invalid"); })
+                .catch(() => { setKeyStatus("valid"); }); // fail open on network error
+        }, []);
         const [activeId, setActiveId] = useState(null);
         const [filterStatus, setFilterStatus] = useState("all");
         const [libraryTab, setLibraryTab] = useState("grid");
@@ -286,6 +301,37 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         const activeBook = books.find(b => b.id === activeId);
         const filtered = filterStatus === "all" ? books : books.filter(b => b.status === filterStatus);
         const tbrCount = books.filter(b => b.status === "want").length;
+
+        if (keyStatus === "checking") return (
+                <div style={{ minHeight: "100vh", background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
+                    <div style={{ textAlign: "center", color: "#6B7B6E" }}>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, color: "#2D3A2E", marginBottom: 8 }}>Marginalia</div>
+                        <div style={{ fontSize: 14 }}>Loading your library…</div>
+                    </div>
+                </div>
+            );
+
+            if (keyStatus === "invalid") return (
+                <div style={{ minHeight: "100vh", background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif", padding: 24 }}>
+                    <div style={{ textAlign: "center", maxWidth: 420 }}>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 32, color: "#2D3A2E", marginBottom: 8 }}>Marginalia</div>
+                        <div style={{ fontSize: 13, color: "#6B7B6E", marginBottom: 24, lineHeight: 1.6 }}>the notes you make, the books you keep</div>
+                        <div style={{ background: "white", border: "1px solid #E5E0D3", borderRadius: 14, padding: 28, marginBottom: 20 }}>
+                            <div style={{ fontSize: 18, fontWeight: 600, color: "#2D3A2E", marginBottom: 8 }}>Access required</div>
+                            <div style={{ fontSize: 14, color: "#6B7B6E", lineHeight: 1.7 }}>
+                                This app requires a valid access link.<br />
+                                If you purchased Marginalia on Etsy, please use the link from your welcome PDF.<br /><br />
+                                If you need help, contact us through your Etsy order.
+                            </div>
+                        </div>
+                        <a href="https://www.etsy.com" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", background: "#7A9471", color: "white", padding: "10px 24px", borderRadius: 10, textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Get Marginalia on Etsy →</a>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div style={{
+                    minHeight: "100vh", background: T.bg, color: T.ink,
 
         return (
             <div style={{ minHeight: "100vh", background: T.bg, color: T.ink, fontFamily: "'Inter', system-ui, sans-serif", fontSize: 16, lineHeight: 1.55 }}>
