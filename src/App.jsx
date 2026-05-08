@@ -860,7 +860,12 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
             if (!synopsis && b.googleId && b.googleId.startsWith("/works/")) {
                 try {
                     const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://openlibrary.org${b.googleId}.json`)}`);
-                    if (res.ok) { const data = await res.json(); synopsis = data.description || null; }
+                    if (res.ok) {
+                    const data = await res.json();
+                    if (data.description) {
+                        synopsis = typeof data.description === "string" ? data.description : data.description.value || null;
+                    }
+                }
                 } catch (_e) { /* ignore */ }
             }
             onAdd({ title: b.title, author: b.author, year: b.year, cover: b.cover, isbn: b.isbn, pages: b.pages, subjects: b.subjects || [], synopsis, publisher: b.publisher || null, googleId: b.googleId });
