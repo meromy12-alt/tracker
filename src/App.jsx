@@ -147,39 +147,32 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         return { googleId: item.id, title: v.title || "Untitled", author: (v.authors || []).slice(0, 2).join(", ") || "Unknown", year: v.publishedDate ? parseInt(v.publishedDate.slice(0, 4), 10) : null, cover, isbn, pages, subjects, synopsis, publisher: v.publisher || null, inferredMoods: Array.from(inferredMoods), inferredKeywordMoods: Array.from(inferredFromKeywords), inferredPace };
     }
 
-    async function searchBooks(query) {
-        const trimmed = query.trim();
-        if (!trimmed) return [];
-        try {
-            const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(trimmed)}&fields=key,title,author_name,first_publish_year,isbn,cover_i,language,edition_count,number_of_pages_median&limit=40`;
-            const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(olUrl)}`;
-            const res = await fetch(proxyUrl);
-            if (res.ok) {
-                const olData = await res.json();
-                const scored = (olData.docs || []).map(doc => {
-                    let score = 0;
-                    if ((doc.language || []).includes("eng")) score += 50;
-                    const isbns = doc.isbn || [];
-                    const isbn13 = isbns.find(i => i.length === 13);
-                    const isbn10 = isbns.find(i => i.length === 10);
-                    if (isbn13) score += 30; else if (isbn10) score += 15;
-                    if (doc.cover_i) score += 20;
-                    if ((doc.edition_count || 0) > 5) score += 10;
-                    if (doc.number_of_pages_median) score += 5;
-                    return { googleId: doc.key, title: doc.title || "Untitled", author: (doc.author_name || []).slice(0, 2).join(", ") || "Unknown", year: doc.first_publish_year || null, isbn: isbn13 || isbn10 || null, cover: null, pages: doc.number_of_pages_median || null, subjects: [], synopsis: null, publisher: null, score, inferredMoods: [], inferredKeywordMoods: [], inferredPace: null };
-                }).filter(b => b.score >= 50).sort((a, b) => b.score - a.score).slice(0, 12);
-                if (scored.length >= 1) return scored;
-            }
-        } catch (_e) { /* fall through */ }
-        const q = trimmed;
-        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=40&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`);
-        if (!res.ok) throw new Error(`Search failed (${res.status})`);
-        const data = await res.json();
-        return (data.items || []).filter(item => {
-            const v = item.volumeInfo || {};
-            return v.language === "en";
-        }).slice(0, 12).map(normaliseGoogleBook);
+async function discoverBooks(answers) {
+    const era = answers.era || "any";
+    let collected = [];
+    if (era === "modern" || era === "any") {
+        const mq = buildEraQuery(answers, "modern");
+        const r1 = await tryGoogleQuery(mq, "newest"); if (r1.ok) collected.push(...filterByEra(r1.books, "modern"));
+        const r2 = await tryGoogleQuery(mq, "relevance"); if (r2.ok) collected.push(...filterByEra(r2.books, "modern"));
     }
+    if (era === "classic" || era === "any") {
+        const cq = buildEraQuery(answers, "classic");
+        const r3 = await tryGoogleQuery(cq, "relevance"); if (r3.ok) collected.push(...filterByEra(r3.books, "classic"));
+    }
+    const seen = new Set();
+    collected = collected.filter(b => { if (seen.has(b.googleId)) return false; seen.add(b.googleId); return true; });
+    if (era === "any") {
+        const modern = collected.filter(b => b.year && b.year >= MODERN_CUTOFF);
+        const classics = collected.filter(b => !b.year || b.year < MODERN_CUTOFF);
+        collected = [...modern, ...classics.slice(0, Math.ceil(classics.length / 3))];
+    }
+    if (collected.length === 0) {
+        const r = await tryGoogleQuery(answers.mood ? `${answers.mood} fiction` : "fiction", "relevance");
+        if (r.ok) collected = filterByEra(r.books, era);
+    }
+    if (collected.length === 0) throw new Error("No results found. Try different answers.");
+    return { books: collected };
+}
 
     function scoreExternal(book, a) {
         let score = 0; const reasons = [];
