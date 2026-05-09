@@ -795,7 +795,6 @@ function parseGoodreadsCSV(text) {
                             </div>
                         )}
                     </div>
-                ) : books.length === 0 ? (
 
                 ) : books.length === 0 ? (
                     <div style={{ padding: 40, textAlign: "center", color: T.muted, border: `1px dashed ${T.border}`, borderRadius: 12 }}>No books in this shelf yet.</div>
