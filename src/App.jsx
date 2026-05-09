@@ -1293,12 +1293,12 @@ function parseGoodreadsCSV(text) {
                         {isWantToRead && (
                             <button onClick={() => onFind(book)} style={{ ...btnPrimary, marginBottom: 14 }}><ExternalLink size={16} /> Find in store</button>
                         )}
-                        {!isWantToRead && (
+                        {book.status === "finished" || book.status === "dnf" ? (
                             <div style={{ marginBottom: 14 }}>
                                 <div style={{ fontSize: 12, color: T.muted, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 6 }}>Your rating</div>
                                 <StarRating value={book.rating} onChange={(r) => onUpdate({ rating: r })} />
                             </div>
-                        )}
+                        ) : null}
                         {book.synopsis && (
                             <div>
                                 <div style={{ fontSize: 12, color: T.muted, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 6 }}>Synopsis</div>
@@ -1478,6 +1478,9 @@ function parseGoodreadsCSV(text) {
             const subjectCounts = {}; finished.forEach(b => (b.subjects || []).forEach(s => { subjectCounts[s] = (subjectCounts[s] || 0) + 1; }));
             const topSubjects = Object.entries(subjectCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
             const topGenre = topSubjects[0]?.[0];
+            const genreCounts = {};
+            finished.forEach(b => (b.genres || []).forEach(g => { genreCounts[g] = (genreCounts[g] || 0) + 1; }));
+            const topGenres = Object.entries(genreCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
             const statusCounts = {}; STATUSES.forEach(s => { statusCounts[s.key] = books.filter(b => b.status === s.key).length; });
             let blurb = null;
             if (finished.length >= 3) {
@@ -1486,7 +1489,7 @@ function parseGoodreadsCSV(text) {
                 const avgPages = totalPages / finished.length;
                 blurb = `You tend to reach for ${topMood || "varied"} books${topPace ? `, often at a ${topPace} pace` : ""}. Most are around ${Math.round(avgPages)} pages.`;
             }
-            return { finished, finishedThisYear, totalPages, pagesThisYear, avgRating, longestBook, topAuthors, moods, topMoodThisYear, paceCounts, topSubjects, topGenre, statusCounts, blurb };
+            return { finished, finishedThisYear, totalPages, pagesThisYear, avgRating, longestBook, topAuthors, moods, topMoodThisYear, paceCounts, topSubjects, topGenre, topGenres, statusCounts, blurb };
         }, [books]);
 
         if (books.length === 0) return (
