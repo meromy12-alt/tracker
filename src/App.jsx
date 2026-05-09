@@ -703,9 +703,10 @@ function parseGoodreadsCSV(text) {
             <div style={{ padding: "60px 20px", textAlign: "center" }}>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 32, fontWeight: 400, marginBottom: 8 }}>Your shelves are empty</div>
                 <p style={{ color: T.muted, maxWidth: 420, margin: "0 auto 24px" }}>Search for any book by title, author, or ISBN.</p>
-                <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-                    <button onClick={onAdd} style={btnPrimary}><Search size={16} /> Find your first book</button>
-                    <button onClick={onWhatNow} style={secondary}><Sparkles size={16} /> Or discover one</button>
+                <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                    <button onClick={() => setLibraryTab("grid")} style={{ ...btn(libraryTab === "grid"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><LibraryIcon size={14} /> Books</button>
+                    <button onClick={() => setLibraryTab("authors")} style={{ ...btn(libraryTab === "authors"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><Users size={14} /> Authors</button>
+                    <button onClick={() => setLibraryTab("quotes")} style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><BookOpen size={14} /> Quotes</button>
                 </div>
             </div>
         );
@@ -767,6 +768,35 @@ function parseGoodreadsCSV(text) {
                             </div>
                         ))}
                     </div>
+                ) : libraryTab === "quotes" ? (
+                    <div>
+                        {allBooks.filter(b => b.quotes && b.quotes.length > 0).length === 0 ? (
+                            <div style={{ padding: 40, textAlign: "center", color: T.muted, border: `1px dashed ${T.border}`, borderRadius: 12 }}>
+                                No passages saved yet. Open a book and add quotes from the Underlined Passages section.
+                            </div>
+                        ) : (
+                            <div style={{ display: "grid", gap: 16 }}>
+                                {allBooks.filter(b => b.quotes && b.quotes.length > 0).map(book => (
+                                    <div key={book.id}>
+                                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, fontWeight: 500, color: T.muted, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                                            <span style={{ color: T.ink }}>{book.title}</span>
+                                            <span>·</span>
+                                            <span>{book.author}</span>
+                                        </div>
+                                        <div style={{ display: "grid", gap: 8 }}>
+                                            {book.quotes.map((q, i) => (
+                                                <div key={i} style={{ padding: "14px 16px", background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, borderLeft: `3px solid ${T.accent}` }}>
+                                                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, lineHeight: 1.7, color: T.ink, fontStyle: "italic" }}>"{q.text}"</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ) : books.length === 0 ? (
+
                 ) : books.length === 0 ? (
                     <div style={{ padding: 40, textAlign: "center", color: T.muted, border: `1px dashed ${T.border}`, borderRadius: 12 }}>No books in this shelf yet.</div>
                 ) : (
