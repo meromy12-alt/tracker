@@ -165,6 +165,39 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
             return { ok: true, query: q, books: (data.items || []).map(normaliseGoogleBook) };
         } catch (err) { return { ok: false, status: 0, query: q, error: err.message }; }
     }
+    async function searchBooks(query) {
+        const trimmed = query.trim();
+        if (!trimmed) return [];
+        try {
+            const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(trimmed)}&fields=key,title,author_name,first_publish_year,isbn,cover_i,language,edition_count,number_of_pages_median&limit=40`;
+            const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(olUrl)}`;
+            const res = await fetch(proxyUrl);
+            if (res.ok) {
+                const olData = await res.json();
+                const scored = (olData.docs || []).map(doc => {
+                    let score = 0;
+                    if ((doc.language || []).includes("eng")) score += 50;
+                    const isbns = doc.isbn || [];
+                    const isbn13 = isbns.find(i => i.length === 13);
+                    const isbn10 = isbns.find(i => i.length === 10);
+                    if (isbn13) score += 30; else if (isbn10) score += 15;
+                    if (doc.cover_i) score += 20;
+                    if ((doc.edition_count || 0) > 5) score += 10;
+                    if (doc.number_of_pages_median) score += 5;
+                    return { googleId: doc.key, title: doc.title || "Untitled", author: (doc.author_name || []).slice(0, 2).join(", ") || "Unknown", year: doc.first_publish_year || null, isbn: isbn13 || isbn10 || null, cover: null, pages: doc.number_of_pages_median || null, subjects: [], synopsis: null, publisher: null, score, inferredMoods: [], inferredKeywordMoods: [], inferredPace: null };
+                }).filter(b => b.score >= 50).sort((a, b) => b.score - a.score).slice(0, 12);
+                if (scored.length >= 1) return scored;
+            }
+        } catch (_e) { /* fall through */ }
+        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(trimmed)}&maxResults=40&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`);
+        if (!res.ok) throw new Error(`Search failed (${res.status})`);
+        const data = await res.json();
+        return (data.items || []).filter(item => {
+            const v = item.volumeInfo || {};
+            return v.language === "en";
+        }).slice(0, 12).map(normaliseGoogleBook);
+    }
+
 
     function filterByEra(books, era) {
         if (era === "any") return books;
