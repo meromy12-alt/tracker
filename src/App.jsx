@@ -1711,7 +1711,7 @@ function parseGoodreadsCSV(text) {
         return (
             <section style={{ marginBottom: 20 }}>
                 <div style={{ marginBottom: 8 }}>
-                    <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 500, margin: 0 }}>{title}</h2>
+                    <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 500, margin: 0, color: T.ink }}>{title}</h2>
                     {hint && <div style={{ color: T.muted, fontSize: 13, marginTop: 2 }}>{hint}</div>}
                 </div>
                 <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: 14 }}>{children}</div>
