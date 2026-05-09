@@ -1658,6 +1658,7 @@ function parseGoodreadsCSV(text) {
                 {(data.paceCounts.slow + data.paceCounts.medium + data.paceCounts.fast) > 0 && <Section title="Pace"><PaceDistribution counts={data.paceCounts} /></Section>}
                 {data.topAuthors.length > 0 && <Section title="Most-read authors"><BarList items={data.topAuthors} max={data.topAuthors[0][1]} color={T.warm} /></Section>}
                 {data.topSubjects.length > 0 && <Section title="Genres & themes"><BarList items={data.topSubjects} max={data.topSubjects[0][1]} color="#8B7AB0" /></Section>}
+                {data.topGenres && data.topGenres.length > 0 && <Section title="Your genres"><BarList items={data.topGenres} max={data.topGenres[0][1]} color={T.accent} /></Section>}
             </div>
         );
     }
