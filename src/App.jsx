@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { BookOpen } from "lucide-react";
 import { Search, Plus, BookOpen, Star, BarChart3, Trash2, Loader2, ArrowLeft, Sparkles, Eye, EyeOff, ExternalLink, Library as LibraryIcon, Compass, Users } from "lucide-react";
 
 const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
