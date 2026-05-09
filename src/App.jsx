@@ -108,6 +108,110 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         URL.revokeObjectURL(url);
     };
 
+function parseGoodreadsCSV(text) {
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+    const idx = (name) => headers.findIndex(h => h.includes(name));
+    const titleIdx = idx('title');
+    const authorIdx = idx('author');
+    const isbnIdx = idx('isbn13') !== -1 ? idx('isbn13') : idx('isbn');
+    const pagesIdx = idx('number of pages');
+    const ratingIdx = idx('my rating');
+    const shelfIdx = idx('exclusive shelf');
+    const dateReadIdx = idx('date read');
+    const dateAddedIdx = idx('date added');
+    const reviewIdx = idx('my review');
+    const yearIdx = idx('original publication year') !== -1 ? idx('original publication year') : idx('year published');
+
+    function parseRow(line) {
+        const cols = [];
+        let inQuote = false;
+        let cur = '';
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') { inQuote = !inQuote; }
+            else if (ch === ',' && !inQuote) { cols.push(cur.trim()); cur = ''; }
+            else { cur += ch; }
+        }
+        cols.push(cur.trim());
+        return cols;
+    }
+
+    function mapShelf(shelf) {
+        if (shelf === 'read') return 'finished';
+        if (shelf === 'to-read') return 'want';
+        if (shelf === 'currently-reading') return 'reading';
+        return 'want';
+    }
+
+    function cleanIsbn(raw) {
+        if (!raw) return null;
+        const cleaned = raw.replace(/[^0-9X]/g, '');
+        return cleaned.length >= 10 ? cleaned : null;
+    }
+
+    return lines.slice(1).map(line => {
+        const cols = parseRow(line);
+        const rating = parseFloat(cols[ratingIdx]) || 0;
+        const shelf = cols[shelfIdx] || 'to-read';
+        const isbn = cleanIsbn(cols[isbnIdx]);
+        const pages = parseInt(cols[pagesIdx]) || null;
+        const year = parseInt(cols[yearIdx]) || null;
+        const dateRead = cols[dateReadIdx] ? cols[dateReadIdx].trim() : '';
+        return {
+            id: uid(),
+            addedAt: Date.now(),
+            title: (cols[titleIdx] || '').replace(/"/g, '').trim() || 'Untitled',
+            author: (cols[authorIdx] || '').replace(/"/g, '').trim() || 'Unknown',
+            isbn,
+            pages,
+            year,
+            rating: Math.min(5, Math.max(0, rating)),
+            status: mapShelf(shelf),
+            moods: [],
+            pace: null,
+            contentWarnings: [],
+            notes: (cols[reviewIdx] || '').replace(/"/g, '').trim(),
+            quotes: [],
+            themes: [],
+            characters: '',
+            startedAt: '',
+            finishedAt: dateRead || '',
+            cover: null,
+            subjects: [],
+            synopsis: null,
+            publisher: null,
+            googleId: uid(),
+        };
+    }).filter(b => b.title && b.title !== 'Untitled');
+    }
+
+    function exportToGoodreads(books) {
+        const headers = ['Title', 'Author', 'ISBN', 'ISBN13', 'My Rating', 'Number of Pages', 'Year Published', 'Exclusive Shelf', 'Date Read', 'My Review'];
+        const shelfMap = { finished: 'read', want: 'to-read', reading: 'currently-reading', dnf: 'to-read' };
+        const escape = (s) => s ? '"' + String(s).replace(/"/g, '""') + '"' : '""';
+        const rows = books.map(b => [
+            escape(b.title),
+            escape(b.author),
+            escape(b.isbn || ''),
+            escape(b.isbn || ''),
+            b.rating || 0,
+            b.pages || '',
+            b.year || '',
+            shelfMap[b.status] || 'to-read',
+            b.finishedAt || '',
+            escape(b.notes || ''),
+        ].join(','));
+        const csv = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `marginalia-goodreads-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
     const importBooks = (file, setBooks) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -443,8 +547,25 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
                             <PalettePicker palette={palette} setPalette={setPalette} isMobile={isMobile} />
                             <button onClick={() => setView("whatnow")} style={{ ...btn(view === "whatnow"), padding: isMobile ? "8px 10px" : "8px 16px" }} title="What now?"><Sparkles size={16} />{!isMobile && " What now?"}</button>
                             <button onClick={() => setView("stats")} style={{ ...btn(view === "stats"), padding: isMobile ? "8px 10px" : "8px 16px" }} title="Stats"><BarChart3 size={16} />{!isMobile && " Stats"}</button>
-                            <button onClick={() => exportBooks(books)} style={{ ...btn(false), padding: isMobile ? "8px 10px" : "8px 16px" }} title="Export">{isMobile ? "⬇" : "Export"}</button>
-                            <label style={{ ...btn(false), cursor: "pointer", padding: isMobile ? "8px 10px" : "8px 16px" }} title="Import">{isMobile ? "⬆" : "Import"}<input type="file" accept=".json" style={{ display: "none" }} onChange={(e) => { if (e.target.files[0]) importBooks(e.target.files[0], setBooks); }} /></label>
+                                <button onClick={() => exportBooks(books)} style={{ ...btn(false), padding: isMobile ? "8px 10px" : "8px 16px" }} title="Export JSON">{isMobile ? "⬇" : "Export"}</button>
+                                <button onClick={() => exportToGoodreads(books)} style={{ ...btn(false), padding: isMobile ? "8px 10px" : "8px 16px" }} title="Export for Goodreads">{isMobile ? "GR" : "→ Goodreads"}</button>
+                                <label style={{ ...btn(false), cursor: "pointer", padding: isMobile ? "8px 10px" : "8px 16px" }} title="Import">{isMobile ? "⬆" : "Import"}
+                                    <input type="file" accept=".json,.csv" style={{ display: "none" }} onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+                                        if (file.name.endsWith('.csv')) {
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                                const imported = parseGoodreadsCSV(ev.target.result);
+                                                if (imported.length === 0) { alert('No books found in CSV. Make sure it is a Goodreads export file.'); return; }
+                                                if (window.confirm(`Import ${imported.length} books from Goodreads? This will replace your current library.`)) setBooks(imported);
+                                            };
+                                            reader.readAsText(file);
+                                        } else {
+                                            importBooks(file, setBooks);
+                                        }
+                                    }} />
+                                </label>
                             <button onClick={() => setView("add")} style={{ ...btnPrimary, padding: isMobile ? "8px 12px" : "8px 18px" }}><Plus size={16} /> Add book</button>
                         </div>
                     </div>
