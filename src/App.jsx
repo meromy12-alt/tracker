@@ -255,13 +255,24 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
             const key = params.get("key");
             if (key) {
                 try { localStorage.setItem("marginalia.key", key); } catch (_e) { /* ignore */ }
+                window.history.replaceState({}, '', window.location.pathname);
             }
             const storedKey = key || localStorage.getItem("marginalia.key");
             if (!storedKey) { setKeyStatus("invalid"); return; }
             fetch(`https://marginalia-dda02-default-rtdb.firebaseio.com/keys/${storedKey}.json`)
                 .then(r => r.json())
-                .then(val => { setKeyStatus(val === "active" ? "valid" : "invalid"); })
-                .catch(() => { setKeyStatus("valid"); }); // fail open on network error
+                .then(val => {
+                    if (!val) { setKeyStatus("invalid"); return; }
+                    const status = typeof val === 'object' ? val.status : val;
+                    if (status === 'active') {
+                        setKeyStatus("welcome");
+                    } else if (status === 'activated') {
+                        setKeyStatus("valid");
+                    } else {
+                        setKeyStatus("invalid");
+                    }
+                })
+                .catch(() => setKeyStatus("valid"));
         }, []);
         const [activeId, setActiveId] = useState(null);
         const [filterStatus, setFilterStatus] = useState("all");
@@ -303,31 +314,69 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         const tbrCount = books.filter(b => b.status === "want").length;
 
         if (keyStatus === "checking") return (
-                <div style={{ minHeight: "100vh", background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
-                    <div style={{ textAlign: "center", color: "#6B7B6E" }}>
-                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, color: "#2D3A2E", marginBottom: 8 }}>Marginalia</div>
-                        <div style={{ fontSize: 14 }}>Loading your library…</div>
-                    </div>
+            <div style={{ minHeight: "100vh", background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
+                <div style={{ textAlign: "center", color: "#6B7B6E" }}>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, color: "#2D3A2E", marginBottom: 8 }}>Marginalia</div>
+                    <div style={{ fontSize: 14 }}>Loading your library…</div>
                 </div>
-            );
+            </div>
+        );
 
-            if (keyStatus === "invalid") return (
-                <div style={{ minHeight: "100vh", background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif", padding: 24 }}>
-                    <div style={{ textAlign: "center", maxWidth: 420 }}>
-                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 32, color: "#2D3A2E", marginBottom: 8 }}>Marginalia</div>
-                        <div style={{ fontSize: 13, color: "#6B7B6E", marginBottom: 24, lineHeight: 1.6 }}>the notes you make, the books you keep</div>
-                        <div style={{ background: "white", border: "1px solid #E5E0D3", borderRadius: 14, padding: 28, marginBottom: 20 }}>
-                            <div style={{ fontSize: 18, fontWeight: 600, color: "#2D3A2E", marginBottom: 8 }}>Access required</div>
-                            <div style={{ fontSize: 14, color: "#6B7B6E", lineHeight: 1.7 }}>
-                                This app requires a valid access link.<br />
-                                If you purchased Marginalia on Etsy, please use the link from your welcome PDF.<br /><br />
-                                If you need help, contact us through your Etsy order.
-                            </div>
-                        </div>
-                        <a href="https://www.etsy.com" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", background: "#7A9471", color: "white", padding: "10px 24px", borderRadius: 10, textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Get Marginalia on Etsy →</a>
+        if (keyStatus === "welcome") return (
+            <div style={{ minHeight: "100vh", background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif", padding: 24 }}>
+                <div style={{ textAlign: "center", maxWidth: 440 }}>
+                    <div style={{ width: 64, height: 64, borderRadius: 16, background: "#7A9471", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></svg>
                     </div>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 32, color: "#2D3A2E", marginBottom: 6 }}>Welcome to Marginalia</div>
+                    <div style={{ fontSize: 13, color: "#6B7B6E", marginBottom: 8, fontStyle: "italic" }}>the notes you make, the books you keep</div>
+                    <div style={{ background: "white", border: "1px solid #E5E0D3", borderRadius: 14, padding: 24, margin: "20px 0" }}>
+                        <div style={{ fontSize: 14, color: "#2D3A2E", lineHeight: 1.7, marginBottom: 16 }}>
+                            Your personal reading tracker is ready. Click below to activate your copy and start building your library.
+                        </div>
+                        <div style={{ background: "#F4F1EA", borderRadius: 8, padding: "10px 14px", fontFamily: "monospace", fontSize: 13, color: "#6B7B6E", marginBottom: 16 }}>
+                            {localStorage.getItem("marginalia.key")}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#6B7B6E" }}>This is your unique access key — keep it safe.</div>
+                    </div>
+                    <button onClick={() => {
+                        const key = localStorage.getItem("marginalia.key");
+                        fetch(`https://marginalia-dda02-default-rtdb.firebaseio.com/keys/${key}.json`)
+                            .then(r => r.json())
+                            .then(existing => {
+                                const updated = typeof existing === 'object' ? { ...existing, status: 'activated', activated: new Date().toISOString() } : { status: 'activated', activated: new Date().toISOString() };
+                                return fetch(`https://marginalia-dda02-default-rtdb.firebaseio.com/keys/${key}.json`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(updated)
+                                });
+                            })
+                            .then(() => setKeyStatus("valid"))
+                            .catch(() => setKeyStatus("valid"));
+                    }} style={{ display: "inline-block", background: "#7A9471", color: "white", padding: "14px 32px", borderRadius: 12, border: "none", fontSize: 16, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+                        Activate &amp; start reading →
+                    </button>
                 </div>
-            );
+            </div>
+        );
+
+        if (keyStatus === "invalid") return (
+            <div style={{ minHeight: "100vh", background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif", padding: 24 }}>
+                <div style={{ textAlign: "center", maxWidth: 420 }}>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 32, color: "#2D3A2E", marginBottom: 8 }}>Marginalia</div>
+                    <div style={{ fontSize: 13, color: "#6B7B6E", marginBottom: 24, lineHeight: 1.6 }}>the notes you make, the books you keep</div>
+                    <div style={{ background: "white", border: "1px solid #E5E0D3", borderRadius: 14, padding: 28, marginBottom: 20 }}>
+                        <div style={{ fontSize: 18, fontWeight: 600, color: "#2D3A2E", marginBottom: 8 }}>Access required</div>
+                        <div style={{ fontSize: 14, color: "#6B7B6E", lineHeight: 1.7 }}>
+                            This app requires a valid access link.<br />
+                            If you purchased Marginalia on Etsy, please use the link from your welcome PDF.<br /><br />
+                            If you need help, contact us through your Etsy order.
+                        </div>
+                    </div>
+                    <a href="https://www.etsy.com" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", background: "#7A9471", color: "white", padding: "10px 24px", borderRadius: 10, textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Get Marginalia on Etsy →</a>
+                </div>
+            </div>
+        );
 
             return (
                 <div style={{
