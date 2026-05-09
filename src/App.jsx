@@ -700,29 +700,15 @@ function parseGoodreadsCSV(text) {
 
     function Library({ books, allBooks, filterStatus, setFilterStatus, libraryTab, setLibraryTab, onOpen, onAdd, tbrCount, onWhatNow, readingGoal, setReadingGoal, onFind }) {
         if (allBooks.length === 0) return (
-            <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-                <button
-                    onClick={() => setLibraryTab("books")}
-                    style={{ ...btn(libraryTab === "books"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}
-                >
-                    <Library size={14} /> Books
-                </button>
-
-                <button
-                    onClick={() => setLibraryTab("authors")}
-                    style={{ ...btn(libraryTab === "authors"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}
-                >
-                    <Users size={14} /> Authors
-                </button>
-
-                <button
-                    onClick={() => setLibraryTab("quotes")}
-                    style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}
-                >
-                    <BookOpen size={14} /> Quotes
-                </button>
+            <div style={{ padding: "60px 20px", textAlign: "center" }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 32, fontWeight: 400, marginBottom: 8 }}>Your shelves are empty</div>
+                <p style={{ color: T.muted, maxWidth: 420, margin: "0 auto 24px" }}>Search for any book by title, author, or ISBN.</p>
+                <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+                    <button onClick={() => setLibraryTab("grid")} style={{ ...btn(libraryTab === "grid"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><LibraryIcon size={14} /> Books</button>
+                    <button onClick={() => setLibraryTab("authors")} style={{ ...btn(libraryTab === "authors"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><Users size={14} /> Authors</button>
+                    <button onClick={() => setLibraryTab("quotes")} style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><BookOpen size={14} /> Quotes</button>
+                </div>
             </div>
-         
         );
 
         const counts = { all: allBooks.length };
