@@ -868,6 +868,12 @@ function parseGoodreadsCSV(text) {
                         {book.rating > 0 && <div style={{ marginTop: 4 }}><StarDisplay rating={book.rating} size={11} /></div>}
                     </div>
                 </div>
+                {book.genres && book.genres.length > 0 && (
+                    <div style={{ fontSize: 11, color: T.muted, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {book.genres.slice(0, 2).join(" · ")}
+                    </div>
+                )}
+
                 {book.status === "want" && onFind && (
                     <button onClick={() => onFind(book)} style={{ background: T.accent, border: "none", borderRadius: 6, color: T.surface, fontSize: 11, padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "inherit", alignSelf: "flex-start", fontWeight: 500 }}>
                         <ExternalLink size={10} /> Find in store
@@ -1441,7 +1447,19 @@ function parseGoodreadsCSV(text) {
                         <Section title="Content warnings" hint="Useful for revisits or recommendations.">
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{CONTENT_WARNINGS.map(cw => <button key={cw} onClick={() => toggleCw(cw)} aria-pressed={book.contentWarnings.includes(cw)} style={tagPill(book.contentWarnings.includes(cw), T.warm)}>{cw}</button>)}</div>
                         </Section>
-
+                        <Section title="Genre">
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                                {GENRES.map(g => (
+                                    <button key={g} onClick={() => {
+                                        const genres = book.genres || [];
+                                        onUpdate({ genres: genres.includes(g) ? genres.filter(x => x !== g) : [...genres, g] });
+                                    }} aria-pressed={(book.genres || []).includes(g)} style={tagPill((book.genres || []).includes(g))}>
+                                        {g}
+                                    </button>
+                                ))}
+                            </div>
+                            {(book.genres || []).length === 0 && <div style={{ fontSize: 13, color: T.muted }}>No genre tagged yet.</div>}
+                        </Section>
                         <Section title="Themes" hint="What ideas does this book explore?">
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                                 {THEMES.map(t => <button key={t} onClick={() => toggleTheme(t)} aria-pressed={(book.themes || []).includes(t)} style={tagPill((book.themes || []).includes(t))}>{t}</button>)}
