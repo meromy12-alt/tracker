@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marginalia Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #F4F1EA; color: #2D3A2E; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: #FAF7F0; border: 1px solid #E5E0D3; border-radius: 16px; padding: 32px; width: 100%; max-width: 520px; }
+  .logo { font-family: Georgia, serif; font-size: 26px; font-weight: 500; color: #2D3A2E; }
+  .tagline { font-size: 11px; color: #6B7B6E; margin-bottom: 28px; letter-spacing: 0.04em; }
+  .label { font-size: 11px; color: #6B7B6E; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: block; }
+  input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #E5E0D3; background: white; color: #2D3A2E; font-size: 14px; outline: none; font-family: inherit; }
+  input:focus { border-color: #7A9471; }
+  .field { margin-bottom: 14px; }
+  .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #7A9471; color: white; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 4px; }
+  .btn:hover { background: #6B8463; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: transparent; border: 1px solid #E5E0D3; color: #2D3A2E; }
+  .btn-secondary:hover { background: #F4F1EA; }
+  .btn-sm { width: auto; padding: 6px 14px; font-size: 13px; margin-top: 0; }
+  .error { color: #B45A5A; font-size: 13px; margin-top: 6px; }
+  .success-box { background: #E8F4E8; border: 1px solid #A8D4A8; border-radius: 12px; padding: 20px; margin-top: 20px; }
+  .success-box h3 { font-family: Georgia, serif; font-size: 17px; font-weight: 500; color: #2D3A2E; margin-bottom: 12px; }
+  .key-display { background: white; border: 2px solid #7A9471; border-radius: 10px; padding: 14px 16px; font-family: monospace; font-size: 18px; color: #2D3A2E; letter-spacing: 0.06em; text-align: center; margin: 10px 0; }
+  .url-display { background: white; border: 1px solid #E5E0D3; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #4A7B7B; word-break: break-all; margin: 8px 0; }
+  .copy-success { color: #5B8B95; font-size: 12px; text-align: center; margin-top: 4px; height: 16px; }
+  hr { border: none; border-top: 1px solid #E5E0D3; margin: 24px 0; }
+  h2 { font-family: Georgia, serif; font-size: 17px; font-weight: 500; margin-bottom: 14px; }
+  .key-row { padding: 12px; background: white; border: 1px solid #E5E0D3; border-radius: 8px; margin-bottom: 8px; font-size: 12px; }
+  .key-row-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .key-code { font-family: monospace; font-weight: 600; font-size: 13px; flex: 1; }
+  .key-status { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .status-active { background: #D4E8D0; color: #2D6B2D; }
+  .status-inactive { background: #F0D4D4; color: #8B2D2D; }
+  .buyer-info { color: #6B7B6E; font-size: 12px; margin-bottom: 8px; }
+  .action-btn { background: none; border: 1px solid #E5E0D3; color: #6B7B6E; font-size: 11px; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-family: inherit; }
+  .action-btn:hover { background: #F4F1EA; }
+  .revoke-btn { border-color: #F0D4D4; color: #B45A5A; }
+  .revoke-btn:hover { background: #F0D4D4; }
+  .empty { color: #6B7B6E; font-size: 13px; text-align: center; padding: 20px; }
+  .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #E5E0D3; background: transparent; color: #6B7B6E; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .tab.active { background: #7A9471; color: white; border-color: #7A9471; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Marginalia</div>
+  <div class="tagline">admin panel</div>
+
+  <div id="login-view">
+    <div class="field">
+      <label class="label">Password</label>
+      <input type="password" id="pwd" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()" />
+      <div class="error" id="login-error"></div>
+    </div>
+    <button class="btn" onclick="login()">Sign in</button>
+  </div>
+
+  <div id="main-view" style="display:none;">
+    <div class="tab-bar">
+      <button class="tab active" id="tab-btn-generate" onclick="showTab('generate')">Generate key</button>
+      <button class="tab" id="tab-btn-keys" onclick="showTab('keys')">All keys</button>
+    </div>
+
+    <div id="tab-generate" class="view active">
+      <h2>New buyer details</h2>
+      <div class="row2">
+        <div class="field">
+          <label class="label">Buyer name *</label>
+          <input type="text" id="buyer-name" placeholder="e.g. Sarah Jones" />
+        </div>
+        <div class="field">
+          <label class="label">Buyer email *</label>
+          <input type="email" id="buyer-email" placeholder="sarah@email.com" />
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label class="label">Etsy order number</label>
+          <input type="text" id="order-num" placeholder="e.g. 3847291056" />
+        </div>
+        <div class="field">
+          <label class="label">Date of purchase</label>
+          <input type="date" id="purchase-date" />
+        </div>
+      </div>
+      <div class="error" id="form-error"></div>
+      <button class="btn" id="gen-btn" onclick="generateKey()">Generate &amp; activate key</button>
+
+      <div class="success-box" id="success-box" style="display:none;">
+        <h3>Key activated</h3>
+        <div style="font-size:13px;color:#6B7B6E;margin-bottom:10px;">Send this URL to the buyer in their welcome PDF:</div>
+        <div class="key-display" id="result-key"></div>
+        <div class="url-display" id="result-url"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="copyUrl()">Copy buyer URL</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyKey()">Copy key only</button>
+          <button class="btn btn-secondary btn-sm" onclick="resetForm()">New key</button>
+        </div>
+        <div class="copy-success" id="copy-msg"></div>
+      </div>
+    </div>
+
+    <div id="tab-keys" class="view">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h2 style="margin-bottom:0;">All keys</h2>
+        <button class="btn btn-secondary btn-sm" onclick="loadKeys()">Refresh</button>
+      </div>
+      <div id="keys-container"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FIREBASE = 'https://marginalia-dda02-default-rtdb.firebaseio.com';
+const APP = 'https://marginalia-tracker-app.vercel.app';
+const PASSWORD = 'Kunterbunt12';
+
+function login() {
+  if (document.getElementById('pwd').value === PASSWORD) {
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('main-view').style.display = 'block';
+    document.getElementById('purchase-date').value = new Date().toISOString().slice(0,10);
+    loadKeys();
+  } else {
+    document.getElementById('login-error').textContent = 'Incorrect password.';
+  }
+}
+
+function showTab(tab) {
+  ['generate','keys'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-btn-'+t).classList.toggle('active', t===tab);
+  });
+  if (tab === 'keys') loadKeys();
+}
+
+function makeKey() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const s = () => Array.from({length:4}, () => c[Math.floor(Math.random()*c.length)]).join('');
+  return 'MARG-'+s()+'-'+s();
+}
+
+async function generateKey() {
+  const name = document.getElementById('buyer-name').value.trim();
+  const email = document.getElementById('buyer-email').value.trim();
+  const order = document.getElementById('order-num').value.trim();
+  const date = document.getElementById('purchase-date').value;
+  const errEl = document.getElementById('form-error');
+
+  if (!name) { errEl.textContent = 'Buyer name is required.'; return; }
+  if (!email || !email.includes('@')) { errEl.textContent = 'Valid buyer email is required.'; return; }
+  errEl.textContent = '';
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+
+  const key = makeKey();
+
+  try {
+    const payload = {
+      status: 'active',
+      name: name,
+      email: email,
+      order: order,
+      date: date || new Date().toISOString().slice(0,10),
+      created: new Date().toISOString()
+    };
+
+    const res = await fetch(FIREBASE+'/keys/'+key+'.json', {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error('HTTP '+res.status);
+
+    document.getElementById('result-key').textContent = key;
+    document.getElementById('result-url').textContent = APP+'?key='+key;
+    document.getElementById('success-box').style.display = 'block';
+    btn.style.display = 'none';
+
+  } catch(e) {
+    errEl.textContent = 'Firebase error: '+e.message+'. Make sure .write is true in Firebase rules.';
+    btn.disabled = false;
+    btn.textContent = 'Generate & activate key';
+  }
+}
+
+function resetForm() {
+  ['buyer-name','buyer-email','order-num'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('purchase-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('success-box').style.display = 'none';
+  document.getElementById('gen-btn').style.display = 'block';
+  document.getElementById('gen-btn').disabled = false;
+  document.getElementById('gen-btn').textContent = 'Generate & activate key';
+  document.getElementById('form-error').textContent = '';
+}
+
+function copyUrl() {
+  navigator.clipboard.writeText(document.getElementById('result-url').textContent)
+    .then(() => { document.getElementById('copy-msg').textContent = 'URL copied!'; setTimeout(()=>document.getElementById('copy-msg').textContent='',2000); });
+}
+
+function copyKey() {
+  navigator.clipboard.writeText(document.getElementById('result-key').textContent)
+    .then(() => { document.getElementById('copy-msg').textContent = 'Key copied!'; setTimeout(()=>document.getElementById('copy-msg').textContent='',2000); });
+}
+
+async function loadKeys() {
+  const c = document.getElementById('keys-container');
+  c.innerHTML = '<div class="empty">Loading...</div>';
+  try {
+    const res = await fetch(FIREBASE+'/keys.json');
+    const data = await res.json();
+    if (!data) { c.innerHTML = '<div class="empty">No keys yet.</div>'; return; }
+
+    const entries = Object.entries(data).sort((a,b) => {
+      const da = typeof a[1]==='object' ? (a[1].created||'') : '';
+      const db = typeof b[1]==='object' ? (b[1].created||'') : '';
+      return db.localeCompare(da);
+    });
+
+    c.innerHTML = '';
+    entries.forEach(function(entry) {
+      const key = entry[0];
+      const val = entry[1];
+      const status = typeof val==='object' ? (val.status||'active') : val;
+      const name = typeof val==='object' ? (val.name||'') : '';
+      const email = typeof val==='object' ? (val.email||'') : '';
+      const date = typeof val==='object' ? (val.date||'') : '';
+      const order = typeof val==='object' ? (val.order||'') : '';
+
+      const row = document.createElement('div');
+      row.className = 'key-row';
+      row.innerHTML =
+        '<div class="key-row-top">'+
+          '<span class="key-code">'+key+'</span>'+
+          '<span class="key-status '+(status==='active'?'status-active':'status-inactive')+'">'+status+'</span>'+
+        '</div>'+
+        (name||email ? '<div class="buyer-info">'+(name?'<strong>'+name+'</strong> &middot; ':'')+email+(order?' &middot; Order #'+order:'')+(date?' &middot; '+date:'')+'</div>' : '')+
+        '<div style="display:flex;gap:6px;">'+
+          '<button class="action-btn" onclick="copyToClip(\''+APP+'?key='+key+'\',this)">Copy URL</button>'+
+          (status==='active'
+            ? '<button class="action-btn revoke-btn" onclick="setStatus(\''+key+'\',\'inactive\')">Revoke</button>'
+            : '<button class="action-btn" onclick="setStatus(\''+key+'\',\'active\')">Reactivate</button>'
+          )+
+        '</div>';
+      c.appendChild(row);
+    });
+  } catch(e) {
+    c.innerHTML = '<div class="empty" style="color:#B45A5A;">Error: '+e.message+'</div>';
+  }
+}
+
+async function setStatus(key, status) {
+  const msg = status==='inactive' ? 'Revoke '+key+'? Buyer loses access immediately.' : 'Reactivate '+key+'?';
+  if (!confirm(msg)) return;
+  const res = await fetch(FIREBASE+'/keys/'+key+'.json');
+  const existing = await res.json();
+  const updated = typeof existing==='object' ? Object.assign({},existing,{status:status}) : status;
+  await fetch(FIREBASE+'/keys/'+key+'.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(updated)
+  });
+  loadKeys();
+}
+
+function copyToClip(text, btn) {
+  navigator.clipboard.writeText(text).then(function() {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = orig; }, 1500);
+  });
+}
+
+document.getElementById('pwd').focus();
+</script>
+</body>
+</html>
