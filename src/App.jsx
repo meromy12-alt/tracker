@@ -740,6 +740,7 @@ function parseGoodreadsCSV(text) {
                 <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
                     <button onClick={() => setLibraryTab("grid")} style={{ ...btn(libraryTab === "grid"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><LibraryIcon size={14} /> Books</button>
                     <button onClick={() => setLibraryTab("authors")} style={{ ...btn(libraryTab === "authors"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><Users size={14} /> Authors</button>
+                    <button onClick={() => setLibraryTab("quotes")}  style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><BookOpen size={14} /> Quotes</button>
                 </div>
 
                 {libraryTab === "authors" ? (
