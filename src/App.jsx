@@ -24,7 +24,7 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         { key: "dnf", label: "Did not finish", color: "#A89888" },
     ];
 
-const MOODS = ["adventurous", "cosy", "dark", "emotional", "funny", "hopeful", "mysterious", "reflective", "tense", "uplifting", "test"];
+    const MOODS = ["adventurous", "cosy", "dark", "emotional", "funny", "hopeful", "mysterious", "reflective", "tense", "uplifting", "sad", "romantic", "suspenseful", "inspiring", "melancholic", "whimsical", "thought-provoking", "comforting", "peaceful", "chaotic", "bittersweet"];
     const PACES = ["slow", "medium", "fast"];
     const CONTENT_WARNINGS = ["violence", "death", "grief", "mental health", "sexual content", "abuse", "medical", "war"];
     const THEMES = ["identity", "love", "loss", "family", "justice", "power", "redemption", "survival", "friendship", "war", "nature", "class", "faith", "memory", "freedom"];
