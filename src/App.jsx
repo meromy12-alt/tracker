@@ -15,6 +15,44 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         forest: { bg: "#141A14", surface: "#1A221A", ink: "#E0EAE0", muted: "#6B8B6B", accent: "#5A8A5A", soft: "#1F2F1F", border: "#283828", warm: "#C97B4A" },
     };
 
+    const GENRES = ["Fiction", "Non-fiction", "Fantasy", "Science Fiction", "Mystery", "Thriller", "Romance", "Historical Fiction", "Horror", "Literary Fiction", "Biography", "Memoir", "Self-help", "Poetry", "Graphic Novel", "Children's", "Young Adult", "Short Stories", "Philosophy", "Science", "History", "Travel", "True Crime", "Humour"];
+
+    const SUBJECT_TO_GENRE = {
+        "fiction": "Fiction", "novel": "Fiction", "literature": "Literary Fiction",
+        "fantasy": "Fantasy", "magic": "Fantasy", "dragons": "Fantasy",
+        "science fiction": "Science Fiction", "sci-fi": "Science Fiction", "space": "Science Fiction",
+        "mystery": "Mystery", "detective": "Mystery", "crime": "Mystery",
+        "thriller": "Thriller", "suspense": "Thriller",
+        "romance": "Romance", "love stories": "Romance",
+        "historical": "Historical Fiction", "history": "History",
+        "horror": "Horror", "ghost": "Horror",
+        "biography": "Biography", "autobiograph": "Biography",
+        "memoir": "Memoir", "personal narratives": "Memoir",
+        "self-help": "Self-help", "self help": "Self-help", "personal development": "Self-help",
+        "poetry": "Poetry", "poems": "Poetry",
+        "graphic novel": "Graphic Novel", "comics": "Graphic Novel",
+        "children": "Children's", "juvenile": "Children's",
+        "young adult": "Young Adult",
+        "short stories": "Short Stories",
+        "philosophy": "Philosophy",
+        "science": "Science", "biology": "Science", "physics": "Science",
+        "travel": "Travel",
+        "true crime": "True Crime",
+        "humor": "Humour", "humour": "Humour", "comedy": "Humour",
+        "non-fiction": "Non-fiction", "nonfiction": "Non-fiction", "essays": "Non-fiction",
+    };
+
+function detectGenres(subjects) {
+    const found = new Set();
+    (subjects || []).forEach(s => {
+        const lower = s.toLowerCase();
+        Object.entries(SUBJECT_TO_GENRE).forEach(([key, genre]) => {
+            if (lower.includes(key)) found.add(genre);
+        });
+    });
+    return Array.from(found).slice(0, 3);
+}
+
     let T = PALETTES.parchment;
 
     const STATUSES = [
@@ -1139,6 +1177,8 @@ function parseGoodreadsCSV(text) {
         const [manualMode, setManualMode] = useState(false);
         const [manual, setManual] = useState({ title: "", author: "", year: "", pages: "" });
         const [manualCover, setManualCover] = useState(null);
+        const [pendingBook, setPendingBook] = useState(null);
+        const [selectedGenres, setSelectedGenres] = useState([]);
 
         const doSearch = async (e) => {
             e?.preventDefault(); if (!query.trim()) return;
@@ -1152,22 +1192,62 @@ function parseGoodreadsCSV(text) {
             let synopsis = b.synopsis || null;
             if (!synopsis && b.googleId && b.googleId.startsWith("/works/")) {
                 try {
-                    const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://openlibrary.org${b.googleId}.json`)}`);
+                    const olUrl = `https://openlibrary.org${b.googleId}.json`;
+                    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(olUrl)}`;
+                    const res = await fetch(proxyUrl);
                     if (res.ok) {
-                    const data = await res.json();
-                    if (data.description) {
-                        synopsis = typeof data.description === "string" ? data.description : data.description.value || null;
+                        const data = await res.json();
+                        if (data.description) {
+                            synopsis = typeof data.description === "string" ? data.description : data.description.value || null;
+                        }
                     }
-                }
                 } catch (_e) { /* ignore */ }
             }
-            onAdd({ title: b.title, author: b.author, year: b.year, cover: b.cover, isbn: b.isbn, pages: b.pages, subjects: b.subjects || [], synopsis, publisher: b.publisher || null, googleId: b.googleId });
+            const detectedGenres = detectGenres(b.subjects || []);
+            setPendingBook({ ...b, synopsis });
+            setSelectedGenres(detectedGenres);
         };
 
         const submitManual = () => {
             if (!manual.title.trim()) return;
-            onAdd({ title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: null, publisher: null, googleId: uid() });
+            onAdd({ title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: null, publisher: null, googleId: uid(), genres: selectedGenres });
         };
+
+        if (pendingBook) return (
+            <div>
+                <button onClick={() => setPendingBook(null)} style={backBtn}><ArrowLeft size={16} /> Back to results</button>
+                <div style={{ display: "grid", gridTemplateColumns: "56px 1fr", gap: 12, alignItems: "center", marginBottom: 20, padding: 14, background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12 }}>
+                    <div style={{ aspectRatio: "2/3", borderRadius: 6, overflow: "hidden", background: T.soft, border: `1px solid ${T.border}` }}>
+                        {coverUrl(pendingBook, "S") ? <img src={coverUrl(pendingBook, "S")} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <EmptyCover book={pendingBook} size="S" />}
+                    </div>
+                    <div>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 500 }}>{pendingBook.title}</div>
+                        <div style={{ color: T.muted, fontSize: 13, marginTop: 2 }}>{pendingBook.author}{pendingBook.year && ` · ${pendingBook.year}`}</div>
+                    </div>
+                </div>
+                <div style={{ marginBottom: 6 }}>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 500, marginBottom: 4 }}>What genre is this?</div>
+                    <div style={{ fontSize: 13, color: T.muted, marginBottom: 16 }}>{selectedGenres.length > 0 ? "We detected these — adjust if needed." : "Pick one or more genres."}</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {GENRES.map(g => (
+                            <button key={g} onClick={() => setSelectedGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
+                                aria-pressed={selectedGenres.includes(g)}
+                                style={tagPill(selectedGenres.includes(g))}>
+                                {g}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+                    <button onClick={() => {
+                        onAdd({ title: pendingBook.title, author: pendingBook.author, year: pendingBook.year, cover: pendingBook.cover, isbn: pendingBook.isbn, pages: pendingBook.pages, subjects: pendingBook.subjects || [], synopsis: pendingBook.synopsis, publisher: pendingBook.publisher || null, googleId: pendingBook.googleId, genres: selectedGenres });
+                    }} style={btnPrimary}>Add to library →</button>
+                    <button onClick={() => {
+                        onAdd({ title: pendingBook.title, author: pendingBook.author, year: pendingBook.year, cover: pendingBook.cover, isbn: pendingBook.isbn, pages: pendingBook.pages, subjects: pendingBook.subjects || [], synopsis: pendingBook.synopsis, publisher: pendingBook.publisher || null, googleId: pendingBook.googleId, genres: [] });
+                    }} style={secondary}>Skip genre</button>
+                </div>
+            </div>
+        );
 
         if (manualMode) return (
             <div>
@@ -1193,6 +1273,20 @@ function parseGoodreadsCSV(text) {
                             <input type="number" value={manual.pages} onChange={e => setManual(m => ({ ...m, pages: e.target.value }))} placeholder="e.g. 320" style={inputStyle} />
                         </div>
                     </div>
+
+                    <div>
+                        <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Genre (optional)</div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {GENRES.map(g => (
+                                <button key={g} onClick={() => setSelectedGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
+                                    aria-pressed={selectedGenres.includes(g)}
+                                    style={tagPill(selectedGenres.includes(g))}>
+                                    {g}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div>
                         <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Cover image (optional)</div>
                         <label style={{ ...btnPrimary, cursor: "pointer", display: "inline-flex" }}>
