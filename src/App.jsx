@@ -537,43 +537,152 @@ function parseGoodreadsCSV(text) {
     }
 
     async function discoverBooks(answers) {
+        const CURATED = [
+            { t: "The Hitchhiker's Guide to the Galaxy", a: "Douglas Adams", y: 1979, isbn: "9780345391803", p: 193, m: ["funny", "adventurous", "whimsical"], pace: "fast" },
+            { t: "Good Omens", a: "Terry Pratchett & Neil Gaiman", y: 1990, isbn: "9780060853983", p: 383, m: ["funny", "adventurous", "whimsical"], pace: "fast" },
+            { t: "Bridget Jones's Diary", a: "Helen Fielding", y: 1996, isbn: "9780330332774", p: 310, m: ["funny", "romantic"], pace: "medium" },
+            { t: "Bossypants", a: "Tina Fey", y: 2011, isbn: "9780316056878", p: 277, m: ["funny", "inspiring"], pace: "fast" },
+            { t: "Me Talk Pretty One Day", a: "David Sedaris", y: 2000, isbn: "9780316777728", p: 272, m: ["funny", "reflective"], pace: "medium" },
+            { t: "The Rosie Project", a: "Graeme Simsion", y: 2013, isbn: "9781476729084", p: 295, m: ["funny", "romantic"], pace: "fast" },
+            { t: "Where'd You Go, Bernadette", a: "Maria Semple", y: 2012, isbn: "9780316204255", p: 330, m: ["funny", "mysterious"], pace: "fast" },
+            { t: "The Inimitable Jeeves", a: "P.G. Wodehouse", y: 1923, isbn: "9780140007725", p: 256, m: ["funny", "cosy"], pace: "medium" },
+            { t: "Catch-22", a: "Joseph Heller", y: 1961, isbn: "9780684833392", p: 453, m: ["funny", "dark", "reflective"], pace: "medium" },
+            { t: "Eleanor Oliphant Is Completely Fine", a: "Gail Honeyman", y: 2017, isbn: "9780735220683", p: 327, m: ["funny", "emotional", "hopeful"], pace: "medium" },
+            { t: "A Man Called Ove", a: "Fredrik Backman", y: 2012, isbn: "9781476738024", p: 337, m: ["funny", "emotional", "hopeful"], pace: "medium" },
+            { t: "Three Men in a Boat", a: "Jerome K. Jerome", y: 1889, isbn: "9780140437508", p: 182, m: ["funny", "adventurous"], pace: "medium" },
+            { t: "The Thursday Murder Club", a: "Richard Osman", y: 2020, isbn: "9781984880963", p: 382, m: ["cosy", "mysterious", "funny"], pace: "medium" },
+            { t: "The No. 1 Ladies' Detective Agency", a: "Alexander McCall Smith", y: 1998, isbn: "9781400034772", p: 235, m: ["cosy", "mysterious", "hopeful"], pace: "slow" },
+            { t: "The House in the Cerulean Sea", a: "TJ Klune", y: 2020, isbn: "9781250217288", p: 394, m: ["cosy", "romantic", "whimsical", "hopeful"], pace: "slow" },
+            { t: "Piranesi", a: "Susanna Clarke", y: 2020, isbn: "9781635575637", p: 272, m: ["cosy", "mysterious", "whimsical"], pace: "slow" },
+            { t: "84, Charing Cross Road", a: "Helene Hanff", y: 1970, isbn: "9780140143508", p: 97, m: ["cosy", "emotional", "hopeful"], pace: "slow" },
+            { t: "Miss Marple: The Complete Short Stories", a: "Agatha Christie", y: 1985, isbn: "9780006173496", p: 346, m: ["cosy", "mysterious"], pace: "medium" },
+            { t: "A Year in Provence", a: "Peter Mayle", y: 1989, isbn: "9780679731382", p: 207, m: ["cosy", "funny"], pace: "slow" },
+            { t: "We Need to Talk About Kevin", a: "Lionel Shriver", y: 2003, isbn: "9780061197840", p: 400, m: ["dark", "tense", "emotional"], pace: "slow" },
+            { t: "Never Let Me Go", a: "Kazuo Ishiguro", y: 2005, isbn: "9781400078776", p: 288, m: ["dark", "emotional", "reflective", "sad"], pace: "slow" },
+            { t: "1984", a: "George Orwell", y: 1949, isbn: "9780451524935", p: 328, m: ["dark", "tense", "reflective"], pace: "medium" },
+            { t: "The Road", a: "Cormac McCarthy", y: 2006, isbn: "9780307387899", p: 287, m: ["dark", "emotional", "sad"], pace: "slow" },
+            { t: "The Bell Jar", a: "Sylvia Plath", y: 1963, isbn: "9780061543333", p: 244, m: ["dark", "emotional", "reflective", "sad"], pace: "slow" },
+            { t: "Rebecca", a: "Daphne du Maurier", y: 1938, isbn: "9780380730407", p: 449, m: ["dark", "tense", "mysterious"], pace: "medium" },
+            { t: "Sharp Objects", a: "Gillian Flynn", y: 2006, isbn: "9780307341556", p: 254, m: ["dark", "tense", "mysterious"], pace: "fast" },
+            { t: "The Secret History", a: "Donna Tartt", y: 1992, isbn: "9781400031702", p: 559, m: ["dark", "mysterious", "tense", "reflective"], pace: "slow" },
+            { t: "Mexican Gothic", a: "Silvia Moreno-Garcia", y: 2020, isbn: "9780525620785", p: 301, m: ["dark", "mysterious", "tense"], pace: "medium" },
+            { t: "Gone Girl", a: "Gillian Flynn", y: 2012, isbn: "9780307588371", p: 422, m: ["tense", "dark", "mysterious"], pace: "fast" },
+            { t: "The Girl with the Dragon Tattoo", a: "Stieg Larsson", y: 2005, isbn: "9780307454546", p: 672, m: ["tense", "dark", "mysterious"], pace: "medium" },
+            { t: "No Country for Old Men", a: "Cormac McCarthy", y: 2005, isbn: "9780307387134", p: 309, m: ["tense", "dark"], pace: "fast" },
+            { t: "The Da Vinci Code", a: "Dan Brown", y: 2003, isbn: "9780385504201", p: 689, m: ["tense", "mysterious", "adventurous"], pace: "fast" },
+            { t: "The Silence of the Lambs", a: "Thomas Harris", y: 1988, isbn: "9780312195250", p: 338, m: ["tense", "dark", "mysterious"], pace: "fast" },
+            { t: "Big Little Lies", a: "Liane Moriarty", y: 2014, isbn: "9781250069795", p: 460, m: ["tense", "mysterious", "emotional"], pace: "fast" },
+            { t: "Behind Closed Doors", a: "B.A. Paris", y: 2016, isbn: "9781250121004", p: 294, m: ["tense", "dark"], pace: "fast" },
+            { t: "And Then There Were None", a: "Agatha Christie", y: 1939, isbn: "9780062073488", p: 264, m: ["mysterious", "tense"], pace: "fast" },
+            { t: "In the Woods", a: "Tana French", y: 2007, isbn: "9780670038602", p: 429, m: ["mysterious", "dark", "tense"], pace: "medium" },
+            { t: "The Name of the Rose", a: "Umberto Eco", y: 1980, isbn: "9780151446476", p: 502, m: ["mysterious", "reflective"], pace: "slow" },
+            { t: "The Shadow of the Wind", a: "Carlos Ruiz Zafon", y: 2001, isbn: "9780143034902", p: 487, m: ["mysterious", "romantic", "dark"], pace: "medium" },
+            { t: "Alias Grace", a: "Margaret Atwood", y: 1996, isbn: "9780385490443", p: 468, m: ["mysterious", "dark", "reflective"], pace: "slow" },
+            { t: "The Kite Runner", a: "Khaled Hosseini", y: 2003, isbn: "9781594631931", p: 372, m: ["emotional", "sad", "hopeful"], pace: "medium" },
+            { t: "The Lovely Bones", a: "Alice Sebold", y: 2002, isbn: "9780316666343", p: 328, m: ["emotional", "sad", "hopeful"], pace: "medium" },
+            { t: "Me Before You", a: "Jojo Moyes", y: 2012, isbn: "9780143124542", p: 369, m: ["emotional", "romantic", "sad"], pace: "medium" },
+            { t: "The Fault in Our Stars", a: "John Green", y: 2012, isbn: "9780525478812", p: 313, m: ["emotional", "romantic", "sad", "hopeful"], pace: "fast" },
+            { t: "Normal People", a: "Sally Rooney", y: 2018, isbn: "9780571334650", p: 273, m: ["emotional", "romantic", "reflective"], pace: "medium" },
+            { t: "Americanah", a: "Chimamanda Ngozi Adichie", y: 2013, isbn: "9780307455925", p: 477, m: ["emotional", "romantic", "reflective"], pace: "medium" },
+            { t: "A Little Life", a: "Hanya Yanagihara", y: 2015, isbn: "9780804172707", p: 720, m: ["emotional", "dark", "sad"], pace: "slow" },
+            { t: "The Time Traveler's Wife", a: "Audrey Niffenegger", y: 2003, isbn: "9780156029438", p: 546, m: ["emotional", "romantic", "sad"], pace: "medium" },
+            { t: "Stoner", a: "John Williams", y: 1965, isbn: "9781590171714", p: 278, m: ["reflective", "emotional", "sad"], pace: "slow" },
+            { t: "The Remains of the Day", a: "Kazuo Ishiguro", y: 1989, isbn: "9780679731726", p: 258, m: ["reflective", "emotional", "sad"], pace: "slow" },
+            { t: "Siddhartha", a: "Hermann Hesse", y: 1922, isbn: "9780553208849", p: 152, m: ["reflective", "hopeful"], pace: "slow" },
+            { t: "Educated", a: "Tara Westover", y: 2018, isbn: "9780399590504", p: 334, m: ["reflective", "emotional", "inspiring"], pace: "medium" },
+            { t: "Man's Search for Meaning", a: "Viktor E. Frankl", y: 1946, isbn: "9780807014271", p: 165, m: ["reflective", "hopeful", "inspiring"], pace: "slow" },
+            { t: "The Alchemist", a: "Paulo Coelho", y: 1988, isbn: "9780062315007", p: 197, m: ["reflective", "hopeful", "adventurous"], pace: "slow" },
+            { t: "Sapiens", a: "Yuval Noah Harari", y: 2011, isbn: "9780062316097", p: 443, m: ["reflective", "inspiring"], pace: "medium" },
+            { t: "When Breath Becomes Air", a: "Paul Kalanithi", y: 2016, isbn: "9780812988406", p: 228, m: ["reflective", "emotional", "inspiring", "sad"], pace: "slow" },
+            { t: "The Midnight Library", a: "Matt Haig", y: 2020, isbn: "9780525559474", p: 304, m: ["hopeful", "emotional", "reflective"], pace: "medium" },
+            { t: "The Unlikely Pilgrimage of Harold Fry", a: "Rachel Joyce", y: 2012, isbn: "9780812983456", p: 320, m: ["hopeful", "emotional", "reflective"], pace: "slow" },
+            { t: "Circe", a: "Madeline Miller", y: 2018, isbn: "9780316556347", p: 393, m: ["hopeful", "adventurous", "emotional"], pace: "medium" },
+            { t: "The Color Purple", a: "Alice Walker", y: 1982, isbn: "9780156031820", p: 245, m: ["hopeful", "emotional", "inspiring"], pace: "medium" },
+            { t: "The Book Thief", a: "Markus Zusak", y: 2005, isbn: "9780375842207", p: 552, m: ["hopeful", "sad", "emotional"], pace: "medium" },
+            { t: "Station Eleven", a: "Emily St. John Mandel", y: 2014, isbn: "9780385353304", p: 333, m: ["hopeful", "dark", "reflective"], pace: "medium" },
+            { t: "The Guernsey Literary and Potato Peel Pie Society", a: "Mary Ann Shaffer", y: 2008, isbn: "9780385340991", p: 274, m: ["uplifting", "cosy", "hopeful", "romantic"], pace: "medium" },
+            { t: "Wild", a: "Cheryl Strayed", y: 2012, isbn: "9780307592736", p: 315, m: ["uplifting", "reflective", "emotional", "inspiring"], pace: "medium" },
+            { t: "Becoming", a: "Michelle Obama", y: 2018, isbn: "9781524763138", p: 448, m: ["uplifting", "inspiring", "reflective"], pace: "medium" },
+            { t: "The Hundred-Year-Old Man Who Climbed Out the Window", a: "Jonas Jonasson", y: 2009, isbn: "9781401324643", p: 384, m: ["uplifting", "funny", "adventurous"], pace: "fast" },
+            { t: "The Secret Garden", a: "Frances Hodgson Burnett", y: 1911, isbn: "9780142437056", p: 331, m: ["uplifting", "cosy", "hopeful"], pace: "slow" },
+            { t: "The Count of Monte Cristo", a: "Alexandre Dumas", y: 1844, isbn: "9780140449266", p: 1276, m: ["adventurous", "tense", "emotional"], pace: "medium" },
+            { t: "The Martian", a: "Andy Weir", y: 2011, isbn: "9780804139021", p: 369, m: ["adventurous", "funny", "tense"], pace: "fast" },
+            { t: "Into the Wild", a: "Jon Krakauer", y: 1996, isbn: "9780385486804", p: 207, m: ["adventurous", "reflective", "sad"], pace: "fast" },
+            { t: "Life of Pi", a: "Yann Martel", y: 2001, isbn: "9780156027328", p: 326, m: ["adventurous", "reflective", "hopeful"], pace: "medium" },
+            { t: "All the Light We Cannot See", a: "Anthony Doerr", y: 2014, isbn: "9781476746586", p: 531, m: ["adventurous", "emotional", "hopeful", "sad"], pace: "medium" },
+            { t: "The Pillars of the Earth", a: "Ken Follett", y: 1989, isbn: "9780451166890", p: 973, m: ["adventurous", "tense", "emotional"], pace: "medium" },
+            { t: "Around the World in 80 Days", a: "Jules Verne", y: 1872, isbn: "9780140449068", p: 253, m: ["adventurous", "funny"], pace: "fast" },
+            { t: "Shantaram", a: "Gregory David Roberts", y: 2003, isbn: "9780312330538", p: 944, m: ["adventurous", "emotional", "reflective"], pace: "medium" },
+            { t: "Pride and Prejudice", a: "Jane Austen", y: 1813, isbn: "9780141439518", p: 432, m: ["romantic", "funny", "cosy"], pace: "slow" },
+            { t: "Jane Eyre", a: "Charlotte Bronte", y: 1847, isbn: "9780141441146", p: 624, m: ["romantic", "dark", "emotional"], pace: "slow" },
+            { t: "Outlander", a: "Diana Gabaldon", y: 1991, isbn: "9780440212560", p: 850, m: ["romantic", "adventurous", "tense"], pace: "medium" },
+            { t: "The Hating Game", a: "Sally Thorne", y: 2016, isbn: "9780062439833", p: 378, m: ["romantic", "funny"], pace: "fast" },
+            { t: "Beach Read", a: "Emily Henry", y: 2020, isbn: "9781984806734", p: 361, m: ["romantic", "funny", "emotional"], pace: "fast" },
+            { t: "It Ends with Us", a: "Colleen Hoover", y: 2016, isbn: "9781501110368", p: 376, m: ["romantic", "emotional", "dark"], pace: "fast" },
+            { t: "The Seven Husbands of Evelyn Hugo", a: "Taylor Jenkins Reid", y: 2017, isbn: "9781501139239", p: 400, m: ["romantic", "emotional", "mysterious"], pace: "fast" },
+            { t: "One Day", a: "David Nicholls", y: 2009, isbn: "9780340896983", p: 437, m: ["romantic", "emotional", "sad"], pace: "medium" },
+            { t: "Norwegian Wood", a: "Haruki Murakami", y: 1987, isbn: "9780375704024", p: 296, m: ["sad", "romantic", "reflective"], pace: "slow" },
+            { t: "The Night Circus", a: "Erin Morgenstern", y: 2011, isbn: "9780385534635", p: 387, m: ["whimsical", "romantic", "mysterious"], pace: "slow" },
+            { t: "The Little Prince", a: "Antoine de Saint-Exupery", y: 1943, isbn: "9780156012195", p: 96, m: ["whimsical", "reflective", "emotional"], pace: "slow" },
+            { t: "Stardust", a: "Neil Gaiman", y: 1999, isbn: "9780380807345", p: 248, m: ["whimsical", "romantic", "adventurous"], pace: "medium" },
+            { t: "The Princess Bride", a: "William Goldman", y: 1973, isbn: "9780156035217", p: 456, m: ["whimsical", "funny", "romantic", "adventurous"], pace: "fast" },
+            { t: "Alice's Adventures in Wonderland", a: "Lewis Carroll", y: 1865, isbn: "9780141321073", p: 192, m: ["whimsical", "adventurous", "funny"], pace: "fast" },
+            { t: "The Ocean at the End of the Lane", a: "Neil Gaiman", y: 2013, isbn: "9780062459367", p: 181, m: ["whimsical", "dark", "emotional"], pace: "fast" },
+            { t: "Jonathan Strange & Mr Norrell", a: "Susanna Clarke", y: 2004, isbn: "9781582344164", p: 846, m: ["whimsical", "mysterious", "dark"], pace: "slow" },
+            { t: "Educated", a: "Tara Westover", y: 2018, isbn: "9780399590504", p: 334, m: ["inspiring", "emotional", "reflective"], pace: "medium" },
+            { t: "Born a Crime", a: "Trevor Noah", y: 2016, isbn: "9780399588174", p: 288, m: ["inspiring", "funny", "emotional", "reflective"], pace: "fast" },
+            { t: "I Am Malala", a: "Malala Yousafzai", y: 2013, isbn: "9780316322409", p: 327, m: ["inspiring", "emotional", "reflective"], pace: "medium" },
+            { t: "The Glass Castle", a: "Jeannette Walls", y: 2005, isbn: "9780743247542", p: 288, m: ["inspiring", "emotional", "reflective"], pace: "medium" },
+            { t: "Long Walk to Freedom", a: "Nelson Mandela", y: 1994, isbn: "9780316548182", p: 656, m: ["inspiring", "reflective", "emotional"], pace: "medium" },
+            { t: "Angela's Ashes", a: "Frank McCourt", y: 1996, isbn: "9780684874357", p: 368, m: ["inspiring", "sad", "emotional", "funny"], pace: "medium" },
+            { t: "The Immortal Life of Henrietta Lacks", a: "Rebecca Skloot", y: 2010, isbn: "9781400052189", p: 381, m: ["inspiring", "reflective", "emotional"], pace: "medium" },
+            { t: "A Thousand Splendid Suns", a: "Khaled Hosseini", y: 2007, isbn: "9781594483172", p: 372, m: ["emotional", "sad", "hopeful", "inspiring"], pace: "medium" },
+            { t: "Atonement", a: "Ian McEwan", y: 2001, isbn: "9780385721790", p: 351, m: ["sad", "emotional", "reflective"], pace: "slow" },
+            { t: "The God of Small Things", a: "Arundhati Roy", y: 1997, isbn: "9780812979657", p: 321, m: ["sad", "emotional", "dark"], pace: "slow" },
+            { t: "On Earth We're Briefly Gorgeous", a: "Ocean Vuong", y: 2019, isbn: "9780525562023", p: 256, m: ["emotional", "reflective", "sad"], pace: "slow" },
+            { t: "Flowers for Algernon", a: "Daniel Keyes", y: 1966, isbn: "9780156030304", p: 311, m: ["emotional", "sad", "reflective"], pace: "medium" },
+            { t: "The Diary of a Young Girl", a: "Anne Frank", y: 1947, isbn: "9780553296983", p: 283, m: ["inspiring", "emotional", "sad"], pace: "slow" },
+            { t: "Treasure Island", a: "Robert Louis Stevenson", y: 1883, isbn: "9780141321004", p: 292, m: ["adventurous", "tense"], pace: "fast" },
+        ];
         const era = answers.era || "any";
-        const MOOD_SUBJECTS = {
-            funny: ["humor", "satire", "comedy"],
-            cosy: ["cozy mystery", "domestic fiction"],
-            dark: ["horror", "gothic fiction", "dark fantasy"],
-            tense: ["thriller", "psychological fiction", "suspense"],
-            mysterious: ["mystery", "detective and mystery stories"],
-            emotional: ["family life", "grief", "relationships"],
-            reflective: ["literary fiction", "philosophical fiction"],
-            hopeful: ["coming of age", "inspirational"],
-            uplifting: ["feel-good", "inspirational fiction"],
-            adventurous: ["adventure", "action and adventure"],
-            romantic: ["romance", "love stories"],
-            suspenseful: ["suspense", "crime thriller"],
-            whimsical: ["magical realism", "fairy tales"],
-            sad: ["tragedy", "grief"],
-            inspiring: ["biography", "memoir"],
+        const mood = answers.mood;
+        const length = answers.length;
+        const avoid = answers.avoid || [];
+        const energy = answers.energy;
+        let pool = CURATED.filter(b => {
+            if (era === "modern" && b.y < 2000) return false;
+            if (era === "classic" && b.y >= 2000) return false;
+            if (mood && !b.m.includes(mood)) return false;
+            if (length === "short" && b.p && b.p >= 350) return false;
+            if (length === "medium" && b.p && (b.p < 200 || b.p > 500)) return false;
+            if (length === "long" && b.p && b.p < 400) return false;
+            if (energy === "carry" && b.pace === "slow") return false;
+            if (energy === "comfort" && b.pace === "fast") return false;
+            return true;
+        });
+        if (pool.length < 3 && mood) {
+            pool = CURATED.filter(b => b.m.includes(mood));
+        }
+        if (pool.length === 0) pool = CURATED;
+        const shuffled = pool.sort(() => Math.random() - 0.5);
+        const books = shuffled.slice(0, 15).map(b => ({
+            googleId: b.isbn,
+            title: b.t,
+            author: b.a,
+            year: b.y,
+            isbn: b.isbn,
+            pages: b.p,
+            cover: null,
+            subjects: [],
+            synopsis: null,
+            publisher: null,
+            inferredMoods: b.m,
+            inferredKeywordMoods: b.m,
+            inferredPace: b.pace || null,
+        }));
+        return { books };
+    
         };
-        const subjects = answers.mood ? (MOOD_SUBJECTS[answers.mood] || ["fiction"]) : ["fiction"];
-        const subject = subjects[Math.floor(Math.random() * subjects.length)];
-        const yearFilter = era === "classic" ? "&published_in=1800-1999" : era === "modern" ? "&published_in=2000-2024" : "";
-        const olUrl = "https://openlibrary.org/search.json?subject=" + encodeURIComponent(subject) + yearFilter + "&fields=key,title,author_name,first_publish_year,isbn,cover_i,language,number_of_pages_median&limit=40&language=eng";
-        const proxyUrl = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(olUrl);
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error("Search failed");
-        const data = await res.json();
-        const collected = (data.docs || []).filter(doc => {
-            if (!(doc.language || []).includes("eng")) return false;
-            return (doc.isbn || []).some(i => i.length === 13 || i.length === 10);
-        }).map(doc => {
-            const isbns = doc.isbn || [];
-            const isbn = isbns.find(i => i.length === 13) || isbns.find(i => i.length === 10) || null;
-            return { googleId: doc.key, title: doc.title || "Untitled", author: (doc.author_name || []).slice(0, 2).join(", ") || "Unknown", year: doc.first_publish_year || null, isbn, cover: null, pages: doc.number_of_pages_median || null, subjects: [], synopsis: null, publisher: null, inferredMoods: answers.mood ? [answers.mood] : [], inferredKeywordMoods: [], inferredPace: null };
-        }).slice(0, 30);
-        if (collected.length === 0) throw new Error("No results found. Try different answers.");
-        return { books: collected };
-    }
 
     function scoreExternal(book, a) {
         let score = 0; const reasons = [];
