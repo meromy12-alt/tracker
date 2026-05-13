@@ -574,7 +574,7 @@ function parseGoodreadsCSV(text) {
 
                 <header style={{ borderBottom: `1px solid ${T.border}`, background: T.surface, padding: isMobile ? "10px 12px" : "16px 20px", position: "sticky", top: 0, zIndex: 10 }}>
                     <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", gap: isMobile ? 8 : 12 }}>
-                        <button onClick={() => { setView("library"); setActiveId(null); }} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", padding: 0, color: T.ink }}>
+                            <button onClick={() => { setView("library"); setActiveId(null); setLibraryTab("grid"); setFilterStatus("all"); }} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", padding: 0, color: T.ink }}>
                             <div style={{ width: 36, height: 36, borderRadius: 10, background: T.accent, display: "grid", placeItems: "center", color: T.surface, flexShrink: 0 }}><BookOpen size={18} /></div>
                             <div style={{ textAlign: "left" }}>
                                 <div style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 22, fontWeight: 500, lineHeight: 1, letterSpacing: "-0.02em" }}>Marginalia</div>
