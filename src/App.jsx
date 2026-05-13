@@ -15,130 +15,200 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         forest: { bg: "#141A14", surface: "#1A221A", ink: "#E0EAE0", muted: "#6B8B6B", accent: "#5A8A5A", soft: "#1F2F1F", border: "#283828", warm: "#C97B4A" },
     };
 
-    const GENRES = ["Fiction", "Non-fiction", "Fantasy", "Science Fiction", "Mystery", "Thriller", "Romance", "Historical Fiction", "Horror", "Literary Fiction", "Biography", "Memoir", "Self-help", "Poetry", "Graphic Novel", "Children's", "Young Adult", "Short Stories", "Philosophy", "Science", "History", "Travel", "True Crime", "Humour"];
+    const GENRES = [
+        "Fiction",
+        "Non-fiction",
 
-const SUBJECT_TO_GENRE = {
-    "fiction": "Fiction",
-    "novel": "Fiction",
-    "literature": "Literary Fiction",
+        "Fantasy",
+        "Urban Fantasy",
+        "Dark Fantasy",
 
-    // Fantasy & Speculative
-    "fantasy": "Fantasy",
-    "magic": "Fantasy",
-    "dragons": "Fantasy",
-    "urban fantasy": "Urban Fantasy",
-    "dark fantasy": "Dark Fantasy",
-    "dystopian": "Dystopian",
-    "utopian": "Utopian",
-    "cyberpunk": "Cyberpunk",
-    "steampunk": "Steampunk",
-    "paranormal": "Paranormal",
-    "supernatural": "Supernatural Fiction",
+        "Science Fiction",
+        "Dystopian",
+        "Utopian",
+        "Cyberpunk",
+        "Steampunk",
+        "Paranormal",
+        "Supernatural Fiction",
 
-    // Science Fiction
-    "science fiction": "Science Fiction",
-    "sci-fi": "Science Fiction",
-    "space": "Science Fiction",
+        "Mystery",
+        "Crime",
+        "Police Procedural",
 
-    // Mystery / Crime / Thriller
-    "mystery": "Mystery",
-    "detective": "Mystery",
-    "crime": "Crime",
-    "police procedural": "Police Procedural",
+        "Thriller",
+        "Legal Thriller",
+        "Psychological Thriller",
 
-    "thriller": "Thriller",
-    "suspense": "Thriller",
-    "legal thriller": "Legal Thriller",
-    "psychological thriller": "Psychological Thriller",
+        "Romance",
+        "Historical Fiction",
+        "Horror",
+        "Literary Fiction",
 
-    // Romance
-    "romance": "Romance",
-    "love stories": "Romance",
+        "Biography",
+        "Memoir",
 
-    // Historical
-    "historical": "Historical Fiction",
-    "history": "History",
+        "Self-help",
+        "Self-development",
+        "Health & Wellness",
 
-    // Horror
-    "horror": "Horror",
-    "ghost": "Horror",
+        "Poetry",
+        "Drama",
+        "Graphic Novel",
+        "Comics",
 
-    // Biography / Memoir
-    "biography": "Biography",
-    "autobiograph": "Biography",
-    "memoir": "Memoir",
-    "personal narratives": "Memoir",
+        "Children's",
+        "Young Adult",
 
-    // Self-help / Wellness
-    "self-help": "Self-help",
-    "self help": "Self-help",
-    "personal development": "Self-development",
-    "self-development": "Self-development",
-    "health": "Health & Wellness",
-    "wellness": "Health & Wellness",
+        "Short Stories",
+        "Essays",
 
-    // Poetry / Drama
-    "poetry": "Poetry",
-    "poems": "Poetry",
-    "drama": "Drama",
-    "plays": "Drama",
+        "Philosophy",
+        "Science",
+        "Psychology",
+        "Sociology",
+        "Politics",
+        "Business & Economics",
+        "Education",
 
-    // Graphic Novels / Comics
-    "graphic novel": "Graphic Novel",
-    "graphic novels": "Graphic Novel",
-    "comics": "Comics",
+        "History",
+        "Travel",
+        "Nature",
+        "Survival",
 
-    // Children / YA
-    "children": "Children's",
-    "juvenile": "Children's",
-    "young adult": "Young Adult",
+        "Religious",
+        "Spiritual",
+        "Mythology",
 
-    // Short Stories / Essays
-    "short stories": "Short Stories",
-    "essays": "Essays",
+        "Art & Design",
+        "Cookbooks",
+        "Sports",
 
-    // Philosophy / Religion / Mythology
-    "philosophy": "Philosophy",
-    "religion": "Religious",
-    "religious": "Religious",
-    "spiritual": "Spiritual",
-    "mythology": "Mythology",
-    "folklore": "Mythology",
+        "True Crime",
+        "Humour"
+    ];
 
-    // Science / Nature
-    "science": "Science",
-    "biology": "Science",
-    "physics": "Science",
-    "nature": "Nature",
-    "survival": "Survival",
+    const SUBJECT_TO_GENRE = {
+        "fiction": "Fiction",
+        "novel": "Fiction",
+        "literature": "Literary Fiction",
 
-    // Social Sciences
-    "psychology": "Psychology",
-    "sociology": "Sociology",
-    "politics": "Politics",
-    "business": "Business & Economics",
-    "economics": "Business & Economics",
+        // Fantasy & Speculative
+        "fantasy": "Fantasy",
+        "magic": "Fantasy",
+        "dragons": "Fantasy",
+        "urban fantasy": "Urban Fantasy",
+        "dark fantasy": "Dark Fantasy",
+        "dystopian": "Dystopian",
+        "utopian": "Utopian",
+        "cyberpunk": "Cyberpunk",
+        "steampunk": "Steampunk",
+        "paranormal": "Paranormal",
+        "supernatural": "Supernatural Fiction",
 
-    // Education / Art / Sports / Cooking
-    "education": "Education",
-    "art": "Art & Design",
-    "design": "Art & Design",
-    "cookbooks": "Cookbooks",
-    "cooking": "Cookbooks",
-    "sports": "Sports",
+        // Science Fiction
+        "science fiction": "Science Fiction",
+        "sci-fi": "Science Fiction",
+        "space": "Science Fiction",
 
-    // Travel / Crime / Humour
-    "travel": "Travel",
-    "true crime": "True Crime",
+        // Mystery / Crime / Thriller
+        "mystery": "Mystery",
+        "detective": "Mystery",
+        "crime": "Crime",
+        "police procedural": "Police Procedural",
 
-    "humor": "Humour",
-    "humour": "Humour",
-    "comedy": "Humour",
+        "thriller": "Thriller",
+        "suspense": "Thriller",
+        "legal thriller": "Legal Thriller",
+        "psychological thriller": "Psychological Thriller",
 
-    // Non-fiction
-    "non-fiction": "Non-fiction",
-    "nonfiction": "Non-fiction"
-};
+        // Romance
+        "romance": "Romance",
+        "love stories": "Romance",
+
+        // Historical
+        "historical": "Historical Fiction",
+        "history": "History",
+
+        // Horror
+        "horror": "Horror",
+        "ghost": "Horror",
+
+        // Biography / Memoir
+        "biography": "Biography",
+        "autobiograph": "Biography",
+        "memoir": "Memoir",
+        "personal narratives": "Memoir",
+
+        // Self-help / Wellness
+        "self-help": "Self-help",
+        "self help": "Self-help",
+        "personal development": "Self-development",
+        "self-development": "Self-development",
+        "health": "Health & Wellness",
+        "wellness": "Health & Wellness",
+
+        // Poetry / Drama
+        "poetry": "Poetry",
+        "poems": "Poetry",
+        "drama": "Drama",
+        "plays": "Drama",
+
+        // Graphic Novels / Comics
+        "graphic novel": "Graphic Novel",
+        "graphic novels": "Graphic Novel",
+        "comics": "Comics",
+
+        // Children / YA
+        "children": "Children's",
+        "juvenile": "Children's",
+        "young adult": "Young Adult",
+
+        // Short Stories / Essays
+        "short stories": "Short Stories",
+        "essays": "Essays",
+
+        // Philosophy / Religion / Mythology
+        "philosophy": "Philosophy",
+        "religion": "Religious",
+        "religious": "Religious",
+        "spiritual": "Spiritual",
+        "mythology": "Mythology",
+        "folklore": "Mythology",
+
+        // Science / Nature
+        "science": "Science",
+        "biology": "Science",
+        "physics": "Science",
+        "nature": "Nature",
+        "survival": "Survival",
+
+        // Social Sciences
+        "psychology": "Psychology",
+        "sociology": "Sociology",
+        "politics": "Politics",
+        "business": "Business & Economics",
+        "economics": "Business & Economics",
+
+        // Education / Art / Sports / Cooking
+        "education": "Education",
+        "art": "Art & Design",
+        "design": "Art & Design",
+        "cookbooks": "Cookbooks",
+        "cooking": "Cookbooks",
+        "sports": "Sports",
+
+        // Travel / Crime / Humour
+        "travel": "Travel",
+        "true crime": "True Crime",
+
+        "humor": "Humour",
+        "humour": "Humour",
+        "comedy": "Humour",
+
+        // Non-fiction
+        "non-fiction": "Non-fiction",
+        "nonfiction": "Non-fiction"
+    };
 
 function detectGenres(subjects) {
     const found = new Set();
