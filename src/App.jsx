@@ -772,14 +772,13 @@ function parseGoodreadsCSV(text) {
                 </button>
                 <GoalCard goal={readingGoal} setGoal={setReadingGoal} books={allBooks} />
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-                    <FilterPill active={filterStatus === "all"} onClick={() => setFilterStatus("all")} count={counts.all}>All</FilterPill>
-                    {STATUSES.map(s => <FilterPill key={s.key} active={filterStatus === s.key} onClick={() => setFilterStatus(s.key)} count={counts[s.key]} color={s.color}>{s.label}</FilterPill>)}
-                </div>
-                <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-                    <button onClick={() => setLibraryTab("grid")} style={{ ...btn(libraryTab === "grid"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><LibraryIcon size={14} /> Books</button>
-                    <button onClick={() => setLibraryTab("authors")} style={{ ...btn(libraryTab === "authors"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><Users size={14} /> Authors</button>
-                    <button onClick={() => setLibraryTab("quotes")}  style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><BookOpen size={14} /> Quotes</button>
-                </div>
+                    <FilterPill active={filterStatus === "all"} onClick={() => { setFilterStatus("all"); setLibraryTab("grid"); } count={counts.all}>All</FilterPill>
+                    {STATUSES.map(s => <FilterPill key={s.key} active={filterStatus === s.key} onClick={() => { setFilterStatus(s.key); setLibraryTab("grid"); } count={counts[s.key]} color={s.color}>{s.label}</FilterPill>)}
+                    <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                        <button onClick={() => { setLibraryTab("grid"); setFilterStatus("all"); }} style={{ ...btn(libraryTab === "grid"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><LibraryIcon size={14} /> Books</button>
+                        <button onClick={() => { setLibraryTab("authors"); setFilterStatus("all"); }} style={{ ...btn(libraryTab === "authors"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><Users size={14} /> Authors</button>
+                        <button onClick={() => setLibraryTab("quotes")} style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><BookOpen size={14} /> Quotes</button>
+                    </div>
 
                 {libraryTab === "authors" ? (
                     <div style={{ display: "grid", gap: 12 }}>
