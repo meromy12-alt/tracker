@@ -1370,6 +1370,7 @@ function parseGoodreadsCSV(text) {
         const [newQuote, setNewQuote] = useState("");
         const [imgError, setImgError] = useState(false);
         const cover = coverUrl(book, "L");
+        useEffect(() => { setImgError(false); }, [book.coverOverride]);
         const status = STATUSES.find(s => s.key === book.status);
         const isWantToRead = book.status === "want";
         const toggleMood = (m) => onUpdate({ moods: book.moods.includes(m) ? book.moods.filter(x => x !== m) : [...book.moods, m] });
