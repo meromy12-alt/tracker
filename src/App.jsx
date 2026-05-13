@@ -1527,7 +1527,8 @@ function parseGoodreadsCSV(text) {
 
         const submitManual = () => {
             if (!manual.title.trim()) return;
-            onAdd({ title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: null, publisher: null, googleId: uid(), genres: selectedGenres });
+            onAdd({
+                title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, editionYear: parseInt(manual.editionYear) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: null, publisher: null, googleId: uid(), genres: selectedGenres });
         };
 
         if (pendingBook) return (
@@ -1582,8 +1583,22 @@ function parseGoodreadsCSV(text) {
                     </div>
                     <div style={{ display: "flex", gap: 12 }}>
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Year</div>
-                            <input type="number" value={manual.year} onChange={e => setManual(m => ({ ...m, year: e.target.value }))} placeholder="e.g. 2023" style={inputStyle} />
+                            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Original publication year</div>
+                            <select value={manual.year} onChange={e => setManual(m => ({ ...m, year: e.target.value }))} style={inputStyle}>
+                                <option value="">Unknown</option>
+                                {Array.from({ length: new Date().getFullYear() - 1000 + 1 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Edition year (optional)</div>
+                            <select value={manual.editionYear || ""} onChange={e => setManual(m => ({ ...m, editionYear: e.target.value }))} style={inputStyle}>
+                                <option value="">Same as above</option>
+                                {Array.from({ length: new Date().getFullYear() - 1000 + 1 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
                         </div>
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Pages</div>
