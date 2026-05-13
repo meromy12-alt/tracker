@@ -538,27 +538,39 @@ function parseGoodreadsCSV(text) {
 
     async function discoverBooks(answers) {
         const era = answers.era || "any";
-        let collected = [];
-        if (era === "modern" || era === "any") {
-            const mq = buildEraQuery(answers, "modern");
-            const r1 = await tryGoogleQuery(mq, "newest"); if (r1.ok) collected.push(...filterByEra(r1.books, "modern"));
-            const r2 = await tryGoogleQuery(mq, "relevance"); if (r2.ok) collected.push(...filterByEra(r2.books, "modern"));
-        }
-        if (era === "classic" || era === "any") {
-            const cq = buildEraQuery(answers, "classic");
-            const r3 = await tryGoogleQuery(cq, "relevance"); if (r3.ok) collected.push(...filterByEra(r3.books, "classic"));
-        }
-        const seen = new Set();
-        collected = collected.filter(b => { if (seen.has(b.googleId)) return false; seen.add(b.googleId); return true; });
-        if (era === "any") {
-            const modern = collected.filter(b => b.year && b.year >= MODERN_CUTOFF);
-            const classics = collected.filter(b => !b.year || b.year < MODERN_CUTOFF);
-            collected = [...modern, ...classics.slice(0, Math.ceil(classics.length / 3))];
-        }
-        if (collected.length === 0) {
-            const r = await tryGoogleQuery(answers.mood ? `${answers.mood} fiction` : "fiction", "relevance");
-            if (r.ok) collected = filterByEra(r.books, era);
-        }
+        const MOOD_SUBJECTS = {
+            funny: ["humor", "satire", "comedy"],
+            cosy: ["cozy mystery", "domestic fiction"],
+            dark: ["horror", "gothic fiction", "dark fantasy"],
+            tense: ["thriller", "psychological fiction", "suspense"],
+            mysterious: ["mystery", "detective and mystery stories"],
+            emotional: ["family life", "grief", "relationships"],
+            reflective: ["literary fiction", "philosophical fiction"],
+            hopeful: ["coming of age", "inspirational"],
+            uplifting: ["feel-good", "inspirational fiction"],
+            adventurous: ["adventure", "action and adventure"],
+            romantic: ["romance", "love stories"],
+            suspenseful: ["suspense", "crime thriller"],
+            whimsical: ["magical realism", "fairy tales"],
+            sad: ["tragedy", "grief"],
+            inspiring: ["biography", "memoir"],
+        };
+        const subjects = answers.mood ? (MOOD_SUBJECTS[answers.mood] || ["fiction"]) : ["fiction"];
+        const subject = subjects[Math.floor(Math.random() * subjects.length)];
+        const yearFilter = era === "classic" ? "&published_in=1800-1999" : era === "modern" ? "&published_in=2000-2024" : "";
+        const olUrl = "https://openlibrary.org/search.json?subject=" + encodeURIComponent(subject) + yearFilter + "&fields=key,title,author_name,first_publish_year,isbn,cover_i,language,number_of_pages_median&limit=40&language=eng";
+        const proxyUrl = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(olUrl);
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error("Search failed");
+        const data = await res.json();
+        const collected = (data.docs || []).filter(doc => {
+            if (!(doc.language || []).includes("eng")) return false;
+            return (doc.isbn || []).some(i => i.length === 13 || i.length === 10);
+        }).map(doc => {
+            const isbns = doc.isbn || [];
+            const isbn = isbns.find(i => i.length === 13) || isbns.find(i => i.length === 10) || null;
+            return { googleId: doc.key, title: doc.title || "Untitled", author: (doc.author_name || []).slice(0, 2).join(", ") || "Unknown", year: doc.first_publish_year || null, isbn, cover: null, pages: doc.number_of_pages_median || null, subjects: [], synopsis: null, publisher: null, inferredMoods: answers.mood ? [answers.mood] : [], inferredKeywordMoods: [], inferredPace: null };
+        }).slice(0, 30);
         if (collected.length === 0) throw new Error("No results found. Try different answers.");
         return { books: collected };
     }
