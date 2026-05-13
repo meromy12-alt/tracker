@@ -1150,7 +1150,7 @@ function parseGoodreadsCSV(text) {
                                             </div>
                                             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 16 }}>
                                                 {grouped[key].books.map(b => {
-                                                    const [imgErr, setImgErr] = React.useState(false);
+                                                    const [imgErr, setImgErr] = useState(false);
                                                     const cover = coverUrl(b, "M");
                                                     return (
                                                         <div key={b.id} onClick={() => onOpen(b.id)} style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1176,7 +1176,7 @@ function parseGoodreadsCSV(text) {
                                             </div>
                                             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 16 }}>
                                                 {undated.map(b => {
-                                                    const [imgErr, setImgErr] = React.useState(false);
+                                                    const [imgErr, setImgErr] = useState(false);
                                                     const cover = coverUrl(b, "M");
                                                     return (
                                                         <div key={b.id} onClick={() => onOpen(b.id)} style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1238,7 +1238,22 @@ function parseGoodreadsCSV(text) {
     }
 
     // ─── BookCard ─────────────────────────────────────────────────────────────────
-
+    function GalleryCard({ book, onOpen }) {
+        const [imgErr, setImgErr] = useState(false);
+        const cover = coverUrl(book, "M");
+        return (
+            <div onClick={() => onOpen(book.id)} style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ aspectRatio: "2/3", borderRadius: 8, overflow: "hidden", background: T.soft, boxShadow: "0 4px 16px rgba(45,58,46,0.12)", border: `1px solid ${T.border}` }}>
+                    {cover && !imgErr
+                        ? <img src={cover} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={() => setImgErr(true)} />
+                        : <EmptyCover book={book} size="M" />
+                    }
+                </div>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 12, fontWeight: 500, lineHeight: 1.3, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{book.title}</div>
+                {book.rating > 0 && <StarDisplay rating={book.rating} size={11} />}
+            </div>
+        );
+    }
     function BookCard({ book, onClick, onFind }) {
         const [imgError, setImgError] = useState(false);
         const cover = coverUrl(book, "M");
