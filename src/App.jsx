@@ -762,7 +762,7 @@ function parseGoodreadsCSV(text) {
         }, []);
         const [activeId, setActiveId] = useState(null);
         const [filterStatus, setFilterStatus] = useState("all");
-        const [libraryTab, setLibraryTab] = useState("grid");
+        const [libraryTab, setLibraryTab] = useState("gallery");
         const [findBook, setFindBook] = useState(null);
         const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
 
@@ -885,7 +885,7 @@ function parseGoodreadsCSV(text) {
 
                 <header style={{ borderBottom: `1px solid ${T.border}`, background: T.surface, padding: isMobile ? "10px 12px" : "16px 20px", position: "sticky", top: 0, zIndex: 10 }}>
                     <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", gap: isMobile ? 8 : 12 }}>
-                            <button onClick={() => { setView("library"); setActiveId(null); setLibraryTab("grid"); setFilterStatus("all"); }} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", padding: 0, color: T.ink }}>
+                            <button onClick={() => { setView("library"); setActiveId(null); setLibraryTab("gallery"); setFilterStatus("all"); }} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", padding: 0, color: T.ink }}>
                             <div style={{ width: 36, height: 36, borderRadius: 10, background: T.accent, display: "grid", placeItems: "center", color: T.surface, flexShrink: 0 }}><BookOpen size={18} /></div>
                             <div style={{ textAlign: "left" }}>
                                 <div style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 22, fontWeight: 500, lineHeight: 1, letterSpacing: "-0.02em" }}>Marginalia</div>
@@ -1087,9 +1087,10 @@ function parseGoodreadsCSV(text) {
                     {STATUSES.map(s => <FilterPill key={s.key} active={filterStatus === s.key} onClick={() => { setFilterStatus(s.key); setLibraryTab("grid"); }} count={counts[s.key]} color={s.color}>{s.label}</FilterPill>)}
                 </div>
                 <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                    <button onClick={() => setLibraryTab("gallery")} style={{ ...btn(libraryTab === "gallery"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><Star size={14} /> Gallery</button>
                     <button onClick={() => { setLibraryTab("grid"); setFilterStatus("all"); }} style={{ ...btn(libraryTab === "grid"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><LibraryIcon size={14} /> Books</button>
                     <button onClick={() => { setLibraryTab("authors"); setFilterStatus("all"); }} style={{ ...btn(libraryTab === "authors"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><Users size={14} /> Authors</button>
-                    <button onClick={() => setLibraryTab("quotes")} style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><BookOpen size={14} /> Quotes</button>
+                    <button onClick={() => setLibraryTab("quotes")} style={{ ...btn(libraryTab === "quotes"), fontSize: 13, minHeight: 34, padding: "6px 12px" }}><BookOpen size={14} /> Passages</button>
                 </div>
 
                 {libraryTab === "authors" ? (
@@ -1117,6 +1118,85 @@ function parseGoodreadsCSV(text) {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                ) : libraryTab === "gallery" ? (
+                    <div>
+                        {(() => {
+                            const finished = allBooks.filter(b => b.status === "finished");
+                            if (finished.length === 0) return (
+                                <div style={{ padding: 40, textAlign: "center", color: T.muted, border: `1px dashed ${T.border}`, borderRadius: 12 }}>
+                                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, marginBottom: 8, color: T.ink }}>Your gallery awaits</div>
+                                    <div style={{ fontSize: 14 }}>Books you finish will appear here, grouped by when you read them.</div>
+                                </div>
+                            );
+                            const dated = finished.filter(b => b.finishedAt);
+                            const undated = finished.filter(b => !b.finishedAt);
+                            const grouped = {};
+                            dated.forEach(b => {
+                                const d = new Date(b.finishedAt);
+                                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                                const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+                                if (!grouped[key]) grouped[key] = { label, books: [] };
+                                grouped[key].books.push(b);
+                            });
+                            const sortedKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+                            return (
+                                <div style={{ display: "grid", gap: 32 }}>
+                                    {sortedKeys.map(key => (
+                                        <div key={key}>
+                                            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 500, color: T.ink, marginBottom: 14, paddingBottom: 8, borderBottom: `1px solid ${T.border}` }}>
+                                                {grouped[key].label}
+                                                <span style={{ fontSize: 13, color: T.muted, fontFamily: "inherit", fontWeight: 400, marginLeft: 10 }}>{grouped[key].books.length} {grouped[key].books.length === 1 ? "book" : "books"}</span>
+                                            </div>
+                                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 16 }}>
+                                                {grouped[key].books.map(b => {
+                                                    const [imgErr, setImgErr] = React.useState(false);
+                                                    const cover = coverUrl(b, "M");
+                                                    return (
+                                                        <div key={b.id} onClick={() => onOpen(b.id)} style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: 6 }}>
+                                                            <div style={{ aspectRatio: "2/3", borderRadius: 8, overflow: "hidden", background: T.soft, boxShadow: "0 4px 16px rgba(45,58,46,0.12)", border: `1px solid ${T.border}` }}>
+                                                                {cover && !imgErr
+                                                                    ? <img src={cover} alt={b.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={() => setImgErr(true)} />
+                                                                    : <EmptyCover book={b} size="M" />
+                                                                }
+                                                            </div>
+                                                            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 12, fontWeight: 500, lineHeight: 1.3, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{b.title}</div>
+                                                            {b.rating > 0 && <StarDisplay rating={b.rating} size={11} />}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {undated.length > 0 && (
+                                        <div>
+                                            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 500, color: T.ink, marginBottom: 14, paddingBottom: 8, borderBottom: `1px solid ${T.border}` }}>
+                                                No date recorded
+                                                <span style={{ fontSize: 13, color: T.muted, fontFamily: "inherit", fontWeight: 400, marginLeft: 10 }}>{undated.length} {undated.length === 1 ? "book" : "books"}</span>
+                                            </div>
+                                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 16 }}>
+                                                {undated.map(b => {
+                                                    const [imgErr, setImgErr] = React.useState(false);
+                                                    const cover = coverUrl(b, "M");
+                                                    return (
+                                                        <div key={b.id} onClick={() => onOpen(b.id)} style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: 6 }}>
+                                                            <div style={{ aspectRatio: "2/3", borderRadius: 8, overflow: "hidden", background: T.soft, boxShadow: "0 4px 16px rgba(45,58,46,0.12)", border: `1px solid ${T.border}` }}>
+                                                                {cover && !imgErr
+                                                                    ? <img src={cover} alt={b.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={() => setImgErr(true)} />
+                                                                    : <EmptyCover book={b} size="M" />
+                                                                }
+                                                            </div>
+                                                            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 12, fontWeight: 500, lineHeight: 1.3, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{b.title}</div>
+                                                            {b.rating > 0 && <StarDisplay rating={b.rating} size={11} />}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                 ) : libraryTab === "quotes" ? (
                     <div>
