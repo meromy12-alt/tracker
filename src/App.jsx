@@ -22,6 +22,7 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         "Fantasy",
         "Urban Fantasy",
         "Dark Fantasy",
+        "Adventure",
 
         "Science Fiction",
         "Dystopian",
@@ -104,6 +105,7 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
         "steampunk": "Steampunk",
         "paranormal": "Paranormal",
         "supernatural": "Supernatural Fiction",
+        "adventure": "Adventure",
 
         // Science Fiction
         "science fiction": "Science Fiction",
