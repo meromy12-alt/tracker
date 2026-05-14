@@ -781,13 +781,7 @@ function parseGoodreadsCSV(text) {
             return () => window.removeEventListener("resize", handler);
         }, []);
 
-        const [manualSynopsisLoading, setManualSynopsisLoading] = useState(false);
-        const submitManual = () => {
-            if (!manual.title.trim()) return;
-            onAdd({
-                title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, editionYear: parseInt(manual.editionYear) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: manual.synopsis || null, publisher: null, googleId: uid(), genres: selectedGenres, bookType: selectedBookType
-            });
-        };
+        
         const addBook = (book, status = "want") => {
             const newBook = { id: uid(), addedAt: Date.now(), status, rating: 0, moods: [], pace: null, contentWarnings: [], notes: "", quotes: [], themes: [], characters: "", startedAt: "", finishedAt: "", ...book };
             setBooks([newBook, ...books]); setActiveId(newBook.id); setView("book");
@@ -1632,7 +1626,8 @@ function parseGoodreadsCSV(text) {
         const submitManual = () => {
             if (!manual.title.trim()) return;
             onAdd({
-                title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, editionYear: parseInt(manual.editionYear) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: null, publisher: null, googleId: uid(), genres: selectedGenres });
+                title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, editionYear: parseInt(manual.editionYear) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: manual.synopsis || null, publisher: null, googleId: uid(), genres: selectedGenres, bookType: selectedBookType
+            });
         };
 
         if (pendingBook) return (
@@ -1683,10 +1678,12 @@ function parseGoodreadsCSV(text) {
                         <input value={manual.title} onChange={e => setManual(m => ({ ...m, title: e.target.value }))} placeholder="Book title" style={inputStyle} autoFocus />
                     </div>
                     <div>
-                        
+                        <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Author</div>
+                        <input value={manual.author} onChange={e => setManual(m => ({ ...m, author: e.target.value }))} placeholder="Author name" style={inputStyle} />
+                    </div>
 
-                        <div>
-                            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Synopsis</div>
+                    <div>
+                        <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Synopsis</div>
                             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                                 <button onClick={async () => {
                                     if (!manual.title.trim()) return;
@@ -1721,8 +1718,8 @@ function parseGoodreadsCSV(text) {
                             </div>
                             <textarea value={manual.synopsis || ""} onChange={e => setManual(m => ({ ...m, synopsis: e.target.value }))} rows={4} placeholder="Synopsis will appear here, or type your own…" style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
                         </div>
-                        <input value={manual.author} onChange={e => setManual(m => ({ ...m, author: e.target.value }))} placeholder="Author name" style={inputStyle} />
-                    </div>
+                        
+                    
                     <div style={{ display: "flex", gap: 12 }}>
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Original publication year</div>
