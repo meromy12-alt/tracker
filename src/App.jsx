@@ -1596,6 +1596,7 @@ function parseGoodreadsCSV(text) {
         const [manualMode, setManualMode] = useState(false);
         const [manual, setManual] = useState({ title: "", author: "", year: "", pages: "" });
         const [manualCover, setManualCover] = useState(null);
+        const [manualSynopsisLoading, setManualSynopsisLoading] = useState(false);
         const [pendingBook, setPendingBook] = useState(null);
         const [selectedGenres, setSelectedGenres] = useState([]);
         const [selectedBookType, setSelectedBookType] = useState(null);
