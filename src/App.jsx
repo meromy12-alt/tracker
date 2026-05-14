@@ -781,6 +781,13 @@ function parseGoodreadsCSV(text) {
             return () => window.removeEventListener("resize", handler);
         }, []);
 
+        const [manualSynopsisLoading, setManualSynopsisLoading] = useState(false);
+        const submitManual = () => {
+            if (!manual.title.trim()) return;
+            onAdd({
+                title: manual.title.trim(), author: manual.author.trim() || "Unknown", year: parseInt(manual.year) || null, editionYear: parseInt(manual.editionYear) || null, pages: parseInt(manual.pages) || null, cover: null, coverOverride: manualCover || undefined, isbn: null, subjects: [], synopsis: manual.synopsis || null, publisher: null, googleId: uid(), genres: selectedGenres, bookType: selectedBookType
+            });
+        };
         const addBook = (book, status = "want") => {
             const newBook = { id: uid(), addedAt: Date.now(), status, rating: 0, moods: [], pace: null, contentWarnings: [], notes: "", quotes: [], themes: [], characters: "", startedAt: "", finishedAt: "", ...book };
             setBooks([newBook, ...books]); setActiveId(newBook.id); setView("book");
@@ -1675,7 +1682,47 @@ function parseGoodreadsCSV(text) {
                         <input value={manual.title} onChange={e => setManual(m => ({ ...m, title: e.target.value }))} placeholder="Book title" style={inputStyle} autoFocus />
                     </div>
                     <div>
-                        <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Author</div>
+                        <div>
+                            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Author</div>
+                            <input value={manual.author} onChange={e => setManual(m => ({ ...m, author: e.target.value }))} placeholder="Author name" style={inputStyle} />
+                        </div>
+
+                        <div>
+                            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Synopsis</div>
+                            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                                <button onClick={async () => {
+                                    if (!manual.title.trim()) return;
+                                    setManualSynopsisLoading(true);
+                                    try {
+                                        const q = [manual.title, manual.author].filter(Boolean).join(" ");
+                                        const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&fields=key,title,description&limit=5`;
+                                        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(olUrl)}`;
+                                        const res = await fetch(proxyUrl);
+                                        if (res.ok) {
+                                            const data = await res.json();
+                                            const match = (data.docs || []).find(d => d.key);
+                                            if (match?.key) {
+                                                const workUrl = `https://openlibrary.org${match.key}.json`;
+                                                const workProxy = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(workUrl)}`;
+                                                const workRes = await fetch(workProxy);
+                                                if (workRes.ok) {
+                                                    const work = await workRes.json();
+                                                    const desc = work.description;
+                                                    const text = typeof desc === "string" ? desc : desc?.value || null;
+                                                    if (text) { setManual(m => ({ ...m, synopsis: text })); }
+                                                    else { setManual(m => ({ ...m, synopsis: "No synopsis found." })); }
+                                                }
+                                            } else { setManual(m => ({ ...m, synopsis: "No synopsis found." })); }
+                                        }
+                                    } catch (_e) { setManual(m => ({ ...m, synopsis: "Couldn't reach search service." })); }
+                                    finally { setManualSynopsisLoading(false); }
+                                }} style={{ ...secondary, fontSize: 13, minHeight: 36 }} disabled={!manual.title.trim() || manualSynopsisLoading}>
+                                    {manualSynopsisLoading ? <><Loader2 size={14} className="spin" /> Searching…</> : "Find synopsis"}
+                                </button>
+                                {manual.synopsis && <button onClick={() => setManual(m => ({ ...m, synopsis: "" }))} style={{ ...secondary, fontSize: 13, minHeight: 36, color: T.muted }}>Clear</button>}
+                            </div>
+                            <textarea value={manual.synopsis || ""} onChange={e => setManual(m => ({ ...m, synopsis: e.target.value }))} rows={4} placeholder="Synopsis will appear here, or type your own…" style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
+                        </div>
                         <input value={manual.author} onChange={e => setManual(m => ({ ...m, author: e.target.value }))} placeholder="Author name" style={inputStyle} />
                     </div>
                     <div style={{ display: "flex", gap: 12 }}>
