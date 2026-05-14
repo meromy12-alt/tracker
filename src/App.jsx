@@ -1952,6 +1952,41 @@ function parseGoodreadsCSV(text) {
                             )}
                         </Section>
 
+                        {book.status === "dnf" && (
+                            <Section title="Why did you stop reading?" hint="The most useful thing you can record.">
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    {[
+                                        "too slow",
+                                        "not engaging",
+                                        "wrong mood",
+                                        "confusing",
+                                        "repetitive",
+                                        "disliked characters",
+                                        "too intense",
+                                        "too dark",
+                                        "poor writing style",
+                                        "lost interest",
+                                        "not what I expected",
+                                        "will return later",
+                                    ].map(reason => (
+                                        <button
+                                            key={reason}
+                                            onClick={() => {
+                                                const current = book.dnfReasons || [];
+                                                onUpdate({ dnfReasons: current.includes(reason) ? current.filter(r => r !== reason) : [...current, reason] });
+                                            }}
+                                            aria-pressed={(book.dnfReasons || []).includes(reason)}
+                                            style={{
+                                                ...tagPill((book.dnfReasons || []).includes(reason), reason === "will return later" ? T.accent : T.warm),
+                                                fontSize: 13,
+                                            }}>
+                                            {reason === "will return later" ? "↩ " : ""}{reason}
+                                        </button>
+                                    ))}
+                                </div>
+                            </Section>
+                        )}
+
                         <Section title="Main characters" hint="People worth remembering.">
                             <textarea value={book.characters || ""} onChange={e => onUpdate({ characters: e.target.value })} rows={3} placeholder="e.g. Harry Potter — orphan wizard…" style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
                         </Section>
