@@ -1591,6 +1591,7 @@ function parseGoodreadsCSV(text) {
         const [manualCover, setManualCover] = useState(null);
         const [pendingBook, setPendingBook] = useState(null);
         const [selectedGenres, setSelectedGenres] = useState([]);
+        const [selectedBookType, setSelectedBookType] = useState(null);
 
         const doSearch = async (e) => {
             e?.preventDefault(); if (!query.trim()) return;
@@ -1638,6 +1639,7 @@ function parseGoodreadsCSV(text) {
                         <div style={{ color: T.muted, fontSize: 13, marginTop: 2 }}>{pendingBook.author}{pendingBook.year && ` · ${pendingBook.year}`}</div>
                     </div>
                 </div>
+                <BookTypePicker value={selectedBookType} onChange={setSelectedBookType} />
                 <div style={{ marginBottom: 6 }}>
                     <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 500, marginBottom: 4 }}>What genre is this?</div>
                     <div style={{ fontSize: 13, color: T.muted, marginBottom: 16 }}>{selectedGenres.length > 0 ? "We detected these — adjust if needed." : "Pick one or more genres."}</div>
@@ -1653,10 +1655,10 @@ function parseGoodreadsCSV(text) {
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
                     <button onClick={() => {
-                        onAdd({ title: pendingBook.title, author: pendingBook.author, year: pendingBook.year, cover: pendingBook.cover, isbn: pendingBook.isbn, pages: pendingBook.pages, subjects: pendingBook.subjects || [], synopsis: pendingBook.synopsis, publisher: pendingBook.publisher || null, googleId: pendingBook.googleId, genres: selectedGenres });
+                        onAdd({ title: pendingBook.title, author: pendingBook.author, year: pendingBook.year, cover: pendingBook.cover, isbn: pendingBook.isbn, pages: pendingBook.pages, subjects: pendingBook.subjects || [], synopsis: pendingBook.synopsis, publisher: pendingBook.publisher || null, googleId: pendingBook.googleId, genres: selectedGenres, bookType: selectedBookType });
                     }} style={btnPrimary}>Add to library →</button>
                     <button onClick={() => {
-                        onAdd({ title: pendingBook.title, author: pendingBook.author, year: pendingBook.year, cover: pendingBook.cover, isbn: pendingBook.isbn, pages: pendingBook.pages, subjects: pendingBook.subjects || [], synopsis: pendingBook.synopsis, publisher: pendingBook.publisher || null, googleId: pendingBook.googleId, genres: [] });
+                        onAdd({ title: pendingBook.title, author: pendingBook.author, year: pendingBook.year, cover: pendingBook.cover, isbn: pendingBook.isbn, pages: pendingBook.pages, subjects: pendingBook.subjects || [], synopsis: pendingBook.synopsis, publisher: pendingBook.publisher || null, googleId: pendingBook.googleId, genres: [], bookType: selectedBookType });
                     }} style={secondary}>Skip genre</button>
                 </div>
             </div>
@@ -1702,6 +1704,7 @@ function parseGoodreadsCSV(text) {
                     </div>
 
                     <div>
+                        <BookTypePicker value={selectedBookType} onChange={setSelectedBookType} />
                         <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Genre (optional)</div>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                             {GENRES.map(g => (
@@ -1798,6 +1801,7 @@ function parseGoodreadsCSV(text) {
         const toggleCw = (cw) => onUpdate({ contentWarnings: book.contentWarnings.includes(cw) ? book.contentWarnings.filter(x => x !== cw) : [...book.contentWarnings, cw] });
         const toggleTheme = (t) => { const themes = book.themes || []; onUpdate({ themes: themes.includes(t) ? themes.filter(x => x !== t) : [...themes, t] }); };
 
+        
         return (
             <div>
                 <button onClick={onBack} style={backBtn}><ArrowLeft size={16} /> Library</button>
@@ -1842,8 +1846,23 @@ function parseGoodreadsCSV(text) {
                         ))}
                     </div>
                 </Section>
+                <Section title="Reading status">
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {STATUSES.map(s => (
+                            <button key={s.key} onClick={() => onUpdate({ status: s.key })} aria-pressed={book.status === s.key} style={{ minHeight: 38, padding: "6px 12px", borderRadius: 10, border: book.status === s.key ? `1.5px solid ${s.color}` : `1px solid ${T.border}`, background: book.status === s.key ? `${s.color}15` : "transparent", color: T.ink, fontSize: 13, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ width: 8, height: 8, borderRadius: 999, background: s.color }} />{s.label}
+                            </button>
+                        ))}
+                    </div>
+                </Section>
+
+                <Section title="Format">
+                    <BookTypePicker value={book.bookType || null} onChange={(v) => onUpdate({ bookType: v })} />
+                </Section>
 
                 {!isWantToRead && (
+
+                
                     <>
                         <Section title="Your reading dates">
                             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -2141,7 +2160,40 @@ function parseGoodreadsCSV(text) {
         );
     }
 
-    // ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── BookTypePicker ───────────────────────────────────────────────────────────
+
+    function BookTypePicker({ value, onChange }) {
+        const types = [
+            { key: "hardcover", emoji: "📕", label: "Hardcover" },
+            { key: "paperback", emoji: "📗", label: "Paperback" },
+            { key: "ebook", emoji: "📱", label: "eBook" },
+            { key: "audiobook", emoji: "🎧", label: "Audiobook" },
+        ];
+        return (
+            <div style={{ marginBottom: 20 }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 500, marginBottom: 4 }}>How are you reading it?</div>
+                <div style={{ fontSize: 13, color: T.muted, marginBottom: 12 }}>Optional.</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {types.map(t => (
+                        <button key={t.key} onClick={() => onChange(value === t.key ? null : t.key)}
+                            aria-pressed={value === t.key}
+                            style={{
+                                display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                                padding: "12px 16px", borderRadius: 12,
+                                border: value === t.key ? `1.5px solid ${T.accent}` : `1px solid ${T.border}`,
+                                background: value === t.key ? `${T.accent}15` : T.surface,
+                                color: T.ink, cursor: "pointer", minWidth: 80, fontSize: 13, fontWeight: 500,
+                            }}>
+                            <span style={{ fontSize: 24 }}>{t.emoji}</span>
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
     const inputStyle = { width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${T.border}`, background: T.surface, color: T.ink, minHeight: 42, outline: "none" };
     const btn = (active) => ({ display: "inline-flex", alignItems: "center", gap: 8, minHeight: 40, padding: "8px 16px", borderRadius: 10, border: active ? `1.5px solid ${T.accent}` : `1px solid ${T.border}`, background: active ? `${T.accent}15` : "transparent", color: T.ink, fontWeight: 500, fontSize: 14, cursor: "pointer" });
