@@ -2035,6 +2035,9 @@ function parseGoodreadsCSV(text) {
             finished.forEach(b => (b.genres || []).forEach(g => { genreCounts[g] = (genreCounts[g] || 0) + 1; }));
             const topGenres = Object.entries(genreCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
             const statusCounts = {}; STATUSES.forEach(s => { statusCounts[s.key] = books.filter(b => b.status === s.key).length; });
+            const formatCounts = { hardcover: 0, paperback: 0, ebook: 0, audiobook: 0 };
+            finished.forEach(b => { if (b.bookType) formatCounts[b.bookType]++; });
+            const topFormat = Object.entries(formatCounts).sort((a, b) => b[1] - a[1]).find(([_, v]) => v > 0)?.[0] || null;
             let blurb = null;
             if (finished.length >= 3) {
                 const topMood = moods[0]?.[0];
@@ -2042,9 +2045,8 @@ function parseGoodreadsCSV(text) {
                 const avgPages = totalPages / finished.length;
                 blurb = `You tend to reach for ${topMood || "varied"} books${topPace ? `, often at a ${topPace} pace` : ""}. Most are around ${Math.round(avgPages)} pages.`;
             }
-            return { finished, finishedThisYear, totalPages, pagesThisYear, avgRating, longestBook, topAuthors, moods, topMoodThisYear, paceCounts, topSubjects, topGenre, topGenres, statusCounts, blurb };
+            return { finished, finishedThisYear, totalPages, pagesThisYear, avgRating, longestBook, topAuthors, moods, topMoodThisYear, paceCounts, topSubjects, topGenre, topGenres, statusCounts, blurb, formatCounts, topFormat };
         }, [books]);
-
         if (books.length === 0) return (
             <div>
                 <button onClick={onBack} style={backBtn}><ArrowLeft size={16} /> Library</button>
@@ -2091,6 +2093,13 @@ function parseGoodreadsCSV(text) {
                                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 500, color: T.accent }}>{data.topGenre}</div>
                                 <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>top genre</div>
                             </div>}
+                            {data.topFormat && <div style={{ textAlign: "center", padding: 12 }}>
+                                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, fontWeight: 500, color: T.accent }}>
+                                    {{ hardcover: "📕", paperback: "📗", ebook: "📱", audiobook: "🎧" }[data.topFormat]}
+                                </div>
+                                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 500, color: T.accent, textTransform: "capitalize" }}>{data.topFormat}</div>
+                                <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>favourite format</div>
+                            </div>}
                         </div>
                     </Section>
                 )}
@@ -2099,7 +2108,13 @@ function parseGoodreadsCSV(text) {
                 {(data.paceCounts.slow + data.paceCounts.medium + data.paceCounts.fast) > 0 && <Section title="Pace"><PaceDistribution counts={data.paceCounts} /></Section>}
                 {data.topAuthors.length > 0 && <Section title="Most-read authors"><BarList items={data.topAuthors} max={data.topAuthors[0][1]} color={T.warm} /></Section>}
                 {data.topSubjects.length > 0 && <Section title="Genres & themes"><BarList items={data.topSubjects} max={data.topSubjects[0][1]} color="#8B7AB0" /></Section>}
-                {data.topGenres && data.topGenres.length > 0 && <Section title="Your genres"><BarList items={data.topGenres} max={data.topGenres[0][1]} color={T.accent} /></Section>}
+                {data.topGenres && data.topGenres.length > 0 && <Section title="Your genres"><BarList items={data.topGenres}
+                    max={data.topGenres[0][1]} color={T.accent} /></Section>}
+                {(data.formatCounts.hardcover + data.formatCounts.paperback + data.formatCounts.ebook + data.formatCounts.audiobook) > 0 && (
+                    <Section title="Format">
+                        <FormatDistribution counts={data.formatCounts} />
+                    </Section>
+                )}
             </div>
         );
     }
@@ -2147,7 +2162,33 @@ function parseGoodreadsCSV(text) {
             </div>
         );
     }
-
+    function FormatDistribution({ counts }) {
+                const total = counts.hardcover + counts.paperback + counts.ebook + counts.audiobook;
+                const formats = [
+                    { key: "hardcover", emoji: "📕", color: "#8B7AB0" },
+                    { key: "paperback", emoji: "📗", color: "#7A9471" },
+                    { key: "ebook", emoji: "📱", color: "#5B8B95" },
+                    { key: "audiobook", emoji: "🎧", color: "#C97B4A" },
+                ];
+                return (
+                    <div>
+                        <div style={{ display: "flex", height: 16, borderRadius: 999, overflow: "hidden", marginBottom: 10 }}>
+                            {formats.map(f => counts[f.key] > 0 && (
+                                <div key={f.key} style={{ width: `${(counts[f.key] / total) * 100}%`, background: f.color }} />
+                            ))}
+                        </div>
+                        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 13 }}>
+                            {formats.map(f => counts[f.key] > 0 && (
+                                <div key={f.key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <span>{f.emoji}</span>
+                                    <span style={{ color: T.ink, textTransform: "capitalize" }}>{f.key}</span>
+                                    <span style={{ color: T.muted }}>{counts[f.key]}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
     function Section({ title, hint, children }) {
         return (
             <section style={{ marginBottom: 20 }}>
