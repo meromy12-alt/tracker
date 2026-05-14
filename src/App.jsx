@@ -1683,10 +1683,7 @@ function parseGoodreadsCSV(text) {
                         <input value={manual.title} onChange={e => setManual(m => ({ ...m, title: e.target.value }))} placeholder="Book title" style={inputStyle} autoFocus />
                     </div>
                     <div>
-                        <div>
-                            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Author</div>
-                            <input value={manual.author} onChange={e => setManual(m => ({ ...m, author: e.target.value }))} placeholder="Author name" style={inputStyle} />
-                        </div>
+                        
 
                         <div>
                             <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", marginBottom: 6 }}>Synopsis</div>
@@ -1894,15 +1891,7 @@ function parseGoodreadsCSV(text) {
                         ))}
                     </div>
                 </Section>
-                <Section title="Reading status">
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {STATUSES.map(s => (
-                            <button key={s.key} onClick={() => onUpdate({ status: s.key })} aria-pressed={book.status === s.key} style={{ minHeight: 38, padding: "6px 12px", borderRadius: 10, border: book.status === s.key ? `1.5px solid ${s.color}` : `1px solid ${T.border}`, background: book.status === s.key ? `${s.color}15` : "transparent", color: T.ink, fontSize: 13, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                                <span style={{ width: 8, height: 8, borderRadius: 999, background: s.color }} />{s.label}
-                            </button>
-                        ))}
-                    </div>
-                </Section>
+                
 
                 <Section title="Format">
                     <BookTypePicker value={book.bookType || null} onChange={(v) => onUpdate({ bookType: v })} />
