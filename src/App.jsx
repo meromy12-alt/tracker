@@ -1858,7 +1858,7 @@ function parseGoodreadsCSV(text) {
                             </div>
                         </Section>
 
-                        <Section title="How did it feel?" hint="Tag the moods you noticed.">
+                        <Section title="Thoughts & Feelings" hint="Tag the moods you noticed.">
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{MOODS.map(m => <button key={m} onClick={() => toggleMood(m)} aria-pressed={book.moods.includes(m)} style={tagPill(book.moods.includes(m))}>{m}</button>)}</div>
                         </Section>
 
