@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, Plus, BookOpen, Star, BarChart3, Trash2, Loader2, ArrowLeft, Sparkles, Eye, EyeOff, ExternalLink, Library as LibraryIcon, Compass, Users } from "lucide-react";
 
 const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
@@ -1833,6 +1834,7 @@ function parseGoodreadsCSV(text) {
 
 function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
         const [saved, setSaved] = useState(false);
+        const saveTimer = useRef(null);
         const [showSynopsis, setShowSynopsis] = useState(false);
         const [newQuote, setNewQuote] = useState("");
         const [imgError, setImgError] = useState(false);
@@ -1840,10 +1842,12 @@ function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
         useEffect(() => { setImgError(false); }, [book.coverOverride]);
         const status = STATUSES.find(s => s.key === book.status);
         const isWantToRead = book.status === "want";
-        const handleUpdate = (patch) => {
+        const handleUpdate = (patch, silent = false) => {
             onUpdate(patch);
-            setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
+            if (!silent) {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            }
         };
         const toggleMood = (m) => handleUpdate({ moods: book.moods.includes(m) ? book.moods.filter(x => x !== m) : [...book.moods, m] });
         const toggleCw = (cw) => handleUpdate({ contentWarnings: book.contentWarnings.includes(cw) ? book.contentWarnings.filter(x => x !== cw) : [...book.contentWarnings, cw] });
@@ -2022,7 +2026,11 @@ function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
                         </Section>
 
                         <Section title="Your notes">
-                            <textarea value={book.notes} onChange={e => onUpdate({ notes: e.target.value })} rows={4} placeholder="Thoughts, favourite moments, things to remember…" style={{ ...inputStyle, resize: "vertical", minHeight: 100 }} />
+                            <textarea value={book.notes} onChange={e => {
+                                onUpdate({ notes: e.target.value });
+                                clearTimeout(saveTimer.current);
+                                saveTimer.current = setTimeout(() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }, 800);
+                            }} rows={4} placeholder="Thoughts, favourite moments, things to remember…" style={{ ...inputStyle, resize: "vertical", minHeight: 100 }} />
                         </Section>
                     </>
                 )}
