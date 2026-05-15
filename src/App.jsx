@@ -1845,6 +1845,9 @@ function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         };
+        const toggleMood = (m) => handleUpdate({ moods: book.moods.includes(m) ? book.moods.filter(x => x !== m) : [...book.moods, m] });
+        const toggleCw = (cw) => handleUpdate({ contentWarnings: book.contentWarnings.includes(cw) ? book.contentWarnings.filter(x => x !== cw) : [...book.contentWarnings, cw] });
+        const toggleTheme = (t) => { const themes = book.themes || []; handleUpdate({ themes: themes.includes(t) ? themes.filter(x => x !== t) : [...themes, t] }); };
 
         
         return (
