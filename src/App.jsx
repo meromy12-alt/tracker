@@ -1785,7 +1785,7 @@ function parseGoodreadsCSV(text) {
                     <div style={{ padding: 20, background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, marginBottom: 16 }}>
                         <div style={{ color: T.ink, marginBottom: 12 }}>{error}</div>
                         <div style={{ fontSize: 13, color: T.muted, marginBottom: 12 }}>Can't find it? You can add it manually instead.</div>
-                        <button onClick={() => setManualMode(true)} style={btnPrimary}><Plus size={16} /> Add manually</button>
+                        <button onClick={() => setManualMode(true)} style={btnPrimary}><Plus size={16} /> <b>Add manually</b></button>
                     </div>
                 )}
 
