@@ -16,201 +16,195 @@ const GOOGLE_BOOKS_KEY = "AIzaSyBwITmWfX-ocya_EQPdwi7c7TONZI4JQRE";
     };
 
     const GENRES = [
+        // 1. Top Level
         "Fiction",
         "Non-fiction",
 
+        // 2. Fiction genres
         "Fantasy",
-        "Urban Fantasy",
-        "Dark Fantasy",
-        "Adventure",
-
         "Science Fiction",
         "Dystopian",
-        "Utopian",
-        "Cyberpunk",
-        "Steampunk",
-        "Paranormal",
-        "Supernatural Fiction",
-
+        "Horror",
         "Mystery",
-        "Crime",
-        "Police Procedural",
-
         "Thriller",
-        "Legal Thriller",
-        "Psychological Thriller",
-
         "Romance",
         "Historical Fiction",
-        "Horror",
         "Literary Fiction",
+        "Adventure",
+        "Crime",
+        "Drama",
+        "Short Stories",
 
+        // 3. Fiction subgenres (refinement layer)
+        "Urban Fantasy",
+        "Dark Fantasy",
+        "Cyberpunk",
+        "Steampunk",
+        "Paranormal / Supernatural Fiction",
+        "Psychological Thriller",
+        "Legal Thriller",
+        "Police Procedural",
+        "True Crime",
+        "Queer / LGBTQ+ Fiction",
+        "Magical Realism",
+
+        // 4. Non-fiction categories
         "Biography",
         "Memoir",
-
-        "Self-help",
-        "Self-development",
+        "Self-help / Self-development",
         "Health & Wellness",
-
-        "Poetry",
-        "Drama",
-        "Graphic Novel",
-        "Comics",
-
-        "Children's",
-        "Young Adult",
-
-        "Short Stories",
-        "Essays",
-
-        "Philosophy",
-        "Science",
         "Psychology",
         "Sociology",
+        "Philosophy",
+        "Science",
+        "History",
         "Politics",
         "Business & Economics",
         "Education",
-
-        "History",
         "Travel",
         "Nature",
-        "Survival",
-
-        "Religious",
-        "Spiritual",
-        "Mythology",
-
+        "Religion / Spirituality",
         "Art & Design",
-        "Cookbooks",
         "Sports",
+        "Cookbooks",
 
-        "True Crime",
-        "Humour"
+        // 5. Optional formats
+        "Poetry",
+        "Graphic Novel",
+        "Comics",
+        "Essays",
+        "Children’s",
+        "Young Adult"
     ];
 
     const SUBJECT_TO_GENRE = {
+        // Top level
         "fiction": "Fiction",
         "novel": "Fiction",
         "literature": "Literary Fiction",
 
-        // Fantasy & Speculative
+        // Fiction core genres
         "fantasy": "Fantasy",
         "magic": "Fantasy",
         "dragons": "Fantasy",
+
         "urban fantasy": "Urban Fantasy",
         "dark fantasy": "Dark Fantasy",
-        "dystopian": "Dystopian",
-        "utopian": "Utopian",
-        "cyberpunk": "Cyberpunk",
-        "steampunk": "Steampunk",
-        "paranormal": "Paranormal",
-        "supernatural": "Supernatural Fiction",
-        "adventure": "Adventure",
 
-        // Science Fiction
         "science fiction": "Science Fiction",
         "sci-fi": "Science Fiction",
         "space": "Science Fiction",
 
-        // Mystery / Crime / Thriller
-        "mystery": "Mystery",
-        "detective": "Mystery",
-        "crime": "Crime",
-        "police procedural": "Police Procedural",
+        "dystopian": "Dystopian",
 
-        "thriller": "Thriller",
-        "suspense": "Thriller",
-        "legal thriller": "Legal Thriller",
-        "psychological thriller": "Psychological Thriller",
-
-        // Romance
-        "romance": "Romance",
-        "love stories": "Romance",
-
-        // Historical
-        "historical": "Historical Fiction",
-        "history": "History",
-
-        // Horror
         "horror": "Horror",
         "ghost": "Horror",
 
-        // Biography / Memoir
-        "biography": "Biography",
-        "autobiograph": "Biography",
-        "memoir": "Memoir",
-        "personal narratives": "Memoir",
+        "mystery": "Mystery",
+        "detective": "Mystery",
 
-        // Self-help / Wellness
-        "self-help": "Self-help",
-        "self help": "Self-help",
-        "personal development": "Self-development",
-        "self-development": "Self-development",
-        "health": "Health & Wellness",
-        "wellness": "Health & Wellness",
+        "crime": "Crime",
 
-        // Poetry / Drama
-        "poetry": "Poetry",
-        "poems": "Poetry",
+        "thriller": "Thriller",
+        "suspense": "Thriller",
+
+        "psychological thriller": "Psychological Thriller",
+        "legal thriller": "Legal Thriller",
+
+        "romance": "Romance",
+        "love stories": "Romance",
+
+        "historical": "Historical Fiction",
+
+        "adventure": "Adventure",
+
         "drama": "Drama",
-        "plays": "Drama",
 
-        // Graphic Novels / Comics
-        "graphic novel": "Graphic Novel",
-        "graphic novels": "Graphic Novel",
-        "comics": "Comics",
-
-        // Children / YA
-        "children": "Children's",
-        "juvenile": "Children's",
-        "young adult": "Young Adult",
-
-        // Short Stories / Essays
         "short stories": "Short Stories",
-        "essays": "Essays",
 
-        // Philosophy / Religion / Mythology
-        "philosophy": "Philosophy",
-        "religion": "Religious",
-        "religious": "Religious",
-        "spiritual": "Spiritual",
-        "mythology": "Mythology",
-        "folklore": "Mythology",
+        // Subgenres
+        "cyberpunk": "Cyberpunk",
+        "steampunk": "Steampunk",
 
-        // Science / Nature
-        "science": "Science",
-        "biology": "Science",
-        "physics": "Science",
-        "nature": "Nature",
-        "survival": "Survival",
+        "paranormal": "Paranormal / Supernatural Fiction",
+        "supernatural": "Paranormal / Supernatural Fiction",
 
-        // Social Sciences
-        "psychology": "Psychology",
-        "sociology": "Sociology",
-        "politics": "Politics",
-        "business": "Business & Economics",
-        "economics": "Business & Economics",
+        "police procedural": "Police Procedural",
 
-        // Education / Art / Sports / Cooking
-        "education": "Education",
-        "art": "Art & Design",
-        "design": "Art & Design",
-        "cookbooks": "Cookbooks",
-        "cooking": "Cookbooks",
-        "sports": "Sports",
-
-        // Travel / Crime / Humour
-        "travel": "Travel",
         "true crime": "True Crime",
 
-        "humor": "Humour",
-        "humour": "Humour",
-        "comedy": "Humour",
+        "lgbtq": "Queer / LGBTQ+ Fiction",
+        "queer": "Queer / LGBTQ+ Fiction",
+
+        "magical realism": "Magical Realism",
 
         // Non-fiction
         "non-fiction": "Non-fiction",
-        "nonfiction": "Non-fiction"
-    };
+        "nonfiction": "Non-fiction",
+
+        "biography": "Biography",
+        "autobiography": "Biography",
+
+        "memoir": "Memoir",
+        "personal narratives": "Memoir",
+
+        "self-help": "Self-help / Self-development",
+        "self help": "Self-help / Self-development",
+        "personal development": "Self-help / Self-development",
+
+        "health": "Health & Wellness",
+        "wellness": "Health & Wellness",
+
+        "psychology": "Psychology",
+        "sociology": "Sociology",
+        "philosophy": "Philosophy",
+
+        "science": "Science",
+        "biology": "Science",
+        "physics": "Science",
+
+        "history": "History",
+        "politics": "Politics",
+
+        "business": "Business & Economics",
+        "economics": "Business & Economics",
+
+        "education": "Education",
+
+        "travel": "Travel",
+        "nature": "Nature",
+
+        "religion": "Religion / Spirituality",
+        "spiritual": "Religion / Spirituality",
+
+        "art": "Art & Design",
+        "design": "Art & Design",
+
+        "sports": "Sports",
+
+        "cookbooks": "Cookbooks",
+        "cooking": "Cookbooks",
+
+        // Formats
+        "poetry": "Poetry",
+        "poems": "Poetry",
+
+        "graphic novel": "Graphic Novel",
+        "graphic novels": "Graphic Novel",
+
+        "comics": "Comics",
+
+        "essays": "Essays",
+
+        "children": "Children’s",
+        "juvenile": "Children’s",
+
+        "young adult": "Young Adult",
+
+        "humor": "Essays",
+        "humour": "Essays",
+        "comedy": "Essays"
+};
 
 function detectGenres(subjects) {
     const found = new Set();
