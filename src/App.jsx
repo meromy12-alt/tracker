@@ -1831,7 +1831,8 @@ function parseGoodreadsCSV(text) {
 
     // ─── BookDetail ───────────────────────────────────────────────────────────────
 
-    function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
+function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
+        const [saved, setSaved] = useState(false);
         const [showSynopsis, setShowSynopsis] = useState(false);
         const [newQuote, setNewQuote] = useState("");
         const [imgError, setImgError] = useState(false);
@@ -1839,9 +1840,11 @@ function parseGoodreadsCSV(text) {
         useEffect(() => { setImgError(false); }, [book.coverOverride]);
         const status = STATUSES.find(s => s.key === book.status);
         const isWantToRead = book.status === "want";
-        const toggleMood = (m) => onUpdate({ moods: book.moods.includes(m) ? book.moods.filter(x => x !== m) : [...book.moods, m] });
-        const toggleCw = (cw) => onUpdate({ contentWarnings: book.contentWarnings.includes(cw) ? book.contentWarnings.filter(x => x !== cw) : [...book.contentWarnings, cw] });
-        const toggleTheme = (t) => { const themes = book.themes || []; onUpdate({ themes: themes.includes(t) ? themes.filter(x => x !== t) : [...themes, t] }); };
+        const handleUpdate = (patch) => {
+            onUpdate(patch);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+        };
 
         
         return (
@@ -1861,12 +1864,19 @@ function parseGoodreadsCSV(text) {
                         {isWantToRead && (
                             <button onClick={() => onFind(book)} style={{ ...btnPrimary, marginBottom: 14 }}><ExternalLink size={16} /> Find in store</button>
                         )}
-                        {book.status === "finished" || book.status === "dnf" ? (
-                            <div style={{ marginBottom: 14 }}>
-                                <div style={{ fontSize: 12, color: T.muted, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 6 }}>Your rating</div>
-                                <StarRating value={book.rating} onChange={(r) => onUpdate({ rating: r })} />
+                        {saved && (
+                            <div style={{
+                                position: "fixed", bottom: 24, right: 24, zIndex: 9999,
+                                background: T.accent, color: T.surface,
+                                padding: "10px 18px", borderRadius: 10,
+                                fontSize: 13, fontWeight: 500,
+                                boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                                display: "flex", alignItems: "center", gap: 8,
+                                animation: "fadeIn 200ms ease"
+                            }}>
+                                ✓ Changes saved
                             </div>
-                        ) : null}
+                        )}
                         {book.synopsis && (
                             <div>
                                 <div style={{ fontSize: 12, color: T.muted, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 6 }}>Synopsis</div>
