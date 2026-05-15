@@ -1883,6 +1883,13 @@ function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
                                 ✓ Changes saved
                             </div>
                         )}
+                        {book.status === "finished" || book.status === "dnf" ? (
+                            <div style={{ marginBottom: 14 }}>
+                                <div style={{ fontSize: 12, color: T.muted, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 6 }}>Your rating</div>
+                                <StarRating value={book.rating} onChange={(r) => handleUpdate({ rating: r })} />
+                            </div>
+                        ) : null}
+
                         {book.synopsis && (
                             <div>
                                 <div style={{ fontSize: 12, color: T.muted, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 6 }}>Synopsis</div>
@@ -1989,7 +1996,7 @@ function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
                                             key={reason}
                                             onClick={() => {
                                                 const current = book.dnfReasons || [];
-                                                onUpdate({ dnfReasons: current.includes(reason) ? current.filter(r => r !== reason) : [...current, reason] });
+                                                handleUpdate({ dnfReasons: current.includes(reason) ? current.filter(r => r !== reason) : [...current, reason] });
                                             }}
                                             aria-pressed={(book.dnfReasons || []).includes(reason)}
                                             style={{
