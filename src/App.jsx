@@ -1,4 +1,3 @@
-import { useState, useEffect, useMemo } from "react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, Plus, BookOpen, Star, BarChart3, Trash2, Loader2, ArrowLeft, Sparkles, Eye, EyeOff, ExternalLink, Library as LibraryIcon, Compass, Users } from "lucide-react";
 
@@ -2005,7 +2004,11 @@ function BookDetail({ book, onUpdate, onDelete, onBack, isMobile, onFind }) {
                         )}
 
                         <Section title="Main characters" hint="People worth remembering.">
-                            <textarea value={book.characters || ""} onChange={e => onUpdate({ characters: e.target.value })} rows={3} placeholder="e.g. Harry Potter — orphan wizard…" style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
+                                <textarea value={book.characters || ""} onChange={e => {
+                                    onUpdate({ characters: e.target.value });
+                                    clearTimeout(saveTimer.current);
+                                    saveTimer.current = setTimeout(() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }, 800);
+                                }} rows={3} placeholder="e.g. Harry Potter — orphan wizard…" style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
                         </Section>
 
                         <Section title="Underlined passages" hint="Lines that stayed with you.">
