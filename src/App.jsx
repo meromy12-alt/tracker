@@ -1360,6 +1360,19 @@ function parseGoodreadsCSV(text) {
             const excludeIds = overrideExcludeIds !== undefined ? overrideExcludeIds : rejectedIds;
             setImgError(false);
             const m = mode === "library" ? matchFromLibrary(final, excludeIds) : await matchFromDiscovery(final, excludeIds);
+            // Fetch synopsis for curated books that don't have one
+            if (m.book && !m.book.synopsis && m.book.isbn) {
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://openlibrary.org/api/books?bibkeys=ISBN:${m.book.isbn}&format=json&jscmd=data`)}`;
+                fetch(proxyUrl).then(r => r.json()).then(data => {
+                    const key = `ISBN:${m.book.isbn}`;
+                    if (data[key]?.excerpts?.[0]?.text) {
+                        m.book.synopsis = data[key].excerpts[0].text;
+                    } else if (data[key]?.subtitle) {
+                        m.book.synopsis = data[key].subtitle;
+                    }
+                    setMatch({ ...m });
+                }).catch(() => { });
+            }
             setMatch(m); setRevealed(!blindMode); setStep("reveal");
         };
 
@@ -1507,7 +1520,14 @@ function parseGoodreadsCSV(text) {
                                         <>
                                             <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(20px, 3.5vw, 28px)", fontWeight: 400, margin: "0 0 6px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>{book.title}</h2>
                                             <div style={{ color: T.muted, fontSize: 14, marginBottom: 12 }}>by {book.author}{book.year && ` · ${book.year}`}{book.pages && ` · ${book.pages}pp`}</div>
-                                            {book.synopsis && <div style={{ fontSize: 13, lineHeight: 1.6, color: T.ink, fontStyle: "italic" }}>{book.synopsis.length > 200 ? book.synopsis.slice(0, 200) + "…" : book.synopsis}</div>}
+                                            {book.synopsis && (
+                                                <div style={{ marginTop: 8 }}>
+                                                    <div style={{ fontSize: 13, lineHeight: 1.6, color: T.ink, fontStyle: "italic" }}>
+                                                        {book.synopsis.length > 300 ? book.synopsis.slice(0, 300) + "…" : book.synopsis}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {!book.synopsis && <div style={{ fontSize: 13, color: T.muted, fontStyle: "italic", marginTop: 8 }}>No synopsis available.</div>}
                                         </>
                                     ) : (
                                         <>
