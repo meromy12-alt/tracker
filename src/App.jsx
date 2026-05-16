@@ -1361,17 +1361,23 @@ function parseGoodreadsCSV(text) {
             setImgError(false);
             const m = mode === "library" ? matchFromLibrary(final, excludeIds) : await matchFromDiscovery(final, excludeIds);
             // Fetch synopsis for curated books that don't have one
-            if (m.book && !m.book.synopsis && m.book.isbn) {
-                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://openlibrary.org/api/books?bibkeys=ISBN:${m.book.isbn}&format=json&jscmd=data`)}`;
-                fetch(proxyUrl).then(r => r.json()).then(data => {
-                    const key = `ISBN:${m.book.isbn}`;
-                    if (data[key]?.excerpts?.[0]?.text) {
-                        m.book.synopsis = data[key].excerpts[0].text;
-                    } else if (data[key]?.subtitle) {
-                        m.book.synopsis = data[key].subtitle;
-                    }
-                    setMatch({ ...m });
-                }).catch(() => { });
+            if (m.book && !m.book.synopsis) {
+                const query = encodeURIComponent(`${m.book.title} ${m.book.author}`);
+                const olUrl = `https://openlibrary.org/search.json?q=${query}&limit=1&fields=key,title,first_sentence,description`;
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(olUrl)}`;
+                fetch(proxyUrl)
+                    .then(r => r.json())
+                    .then(data => {
+                        const doc = (data.docs || [])[0];
+                        let syn = null;
+                        if (doc?.first_sentence) {
+                            syn = typeof doc.first_sentence === "string" ? doc.first_sentence : doc.first_sentence.value;
+                        } else if (doc?.description) {
+                            syn = typeof doc.description === "string" ? doc.description : doc.description.value;
+                        }
+                        if (syn) setMatch(prev => ({ ...prev, book: { ...prev.book, synopsis: syn } }));
+                    })
+                    .catch(() => { });
             }
             setMatch(m); setRevealed(!blindMode); setStep("reveal");
         };
